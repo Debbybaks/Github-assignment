@@ -1,0 +1,2710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>De-Bak trust — Private Banking</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0A0E14;
+    --surface:#12161F;
+    --surface-2:#181D28;
+    --surface-3:#1F2530;
+    --hairline:#242B38;
+    --hairline-soft:#1B212C;
+    --brass:#C9A227;
+    --brass-soft:#E4C874;
+    --brass-dim:#8A7229;
+    --teal:#2DD4BF;
+    --rose:#E5747A;
+    --text:#E8EAED;
+    --text-dim:#8B93A1;
+    --text-faint:#5B6270;
+    --radius:10px;
+    --radius-lg:16px;
+    --shadow: 0 20px 60px -20px rgba(0,0,0,0.6);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--ink);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  .hidden{display:none !important;}
+  ::selection{ background:var(--brass); color:#1a1400; }
+  a{color:inherit;}
+  button{ font-family:inherit; cursor:pointer; }
+  input, select{ font-family:inherit; }
+  .mono{ font-family:'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
+  .serif{ font-family:'Fraunces', serif; }
+
+  /* ---------- scrollbar ---------- */
+  ::-webkit-scrollbar{ width:10px; height:10px; }
+  ::-webkit-scrollbar-track{ background:transparent; }
+  ::-webkit-scrollbar-thumb{ background:var(--hairline); border-radius:8px; }
+
+  /* ==================== AUTH VIEW ==================== */
+  #auth-view{
+    display:grid;
+    grid-template-columns: 1.1fr 1fr;
+    min-height:100vh;
+  }
+  .auth-hero{
+    position:relative;
+    background:
+      radial-gradient(ellipse 700px 500px at 15% 10%, rgba(201,162,39,0.10), transparent 60%),
+      linear-gradient(180deg, #0A0E14 0%, #0D1220 100%);
+    padding:56px 64px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    overflow:hidden;
+    border-right:1px solid var(--hairline-soft);
+  }
+  .brand{
+    display:flex; align-items:center; gap:12px;
+  }
+  .brand-mark{
+    width:36px; height:36px; border-radius:8px;
+    background:linear-gradient(155deg, var(--brass-soft), var(--brass-dim));
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Fraunces',serif; font-weight:700; color:#1a1400; font-size:18px;
+    box-shadow: 0 8px 24px -8px rgba(201,162,39,0.5);
+  }
+  .brand-name{ font-family:'Fraunces',serif; font-size:19px; letter-spacing:0.01em; }
+  .brand-sub{ font-size:11px; color:var(--text-faint); letter-spacing:0.14em; text-transform:uppercase; margin-top:1px; }
+
+  .hero-copy{ max-width:460px; margin-top:40px; }
+  .hero-eyebrow{
+    font-size:11px; letter-spacing:0.18em; text-transform:uppercase; color:var(--brass-soft);
+    display:flex; align-items:center; gap:8px; margin-bottom:18px;
+  }
+  .hero-eyebrow::before{ content:''; width:20px; height:1px; background:var(--brass-dim); }
+  .hero-copy h1{
+    font-family:'Fraunces',serif; font-weight:600; font-size:44px; line-height:1.08; letter-spacing:-0.01em;
+  }
+  .hero-copy p{ color:var(--text-dim); font-size:15px; line-height:1.6; margin-top:18px; }
+
+  /* signature: ledger tape */
+  .ledger-tape-wrap{
+    position:relative; height:220px; margin-top:36px;
+    -webkit-mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
+            mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
+    overflow:hidden;
+    border-left:1px solid var(--hairline);
+    padding-left:20px;
+  }
+  .ledger-tape{
+    display:flex; flex-direction:column; gap:0;
+    animation: tape-scroll 16s linear infinite;
+  }
+  .ledger-line{
+    display:flex; justify-content:space-between; gap:24px;
+    padding:9px 0; font-size:12.5px; color:var(--text-faint);
+    border-bottom:1px dashed var(--hairline-soft);
+    white-space:nowrap;
+  }
+  .ledger-line .amt-pos{ color:var(--teal); font-family:'JetBrains Mono',monospace; }
+  .ledger-line .amt-neg{ color:var(--text-dim); font-family:'JetBrains Mono',monospace; }
+  @keyframes tape-scroll{
+    0%{ transform:translateY(0); }
+    100%{ transform:translateY(-50%); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .ledger-tape{ animation:none; }
+  }
+
+  .hero-footer{ font-size:12px; color:var(--text-faint); display:flex; gap:18px; }
+  .hero-footer span{ display:flex; align-items:center; gap:6px; }
+  .dot{ width:5px; height:5px; border-radius:50%; background:var(--brass-dim); }
+
+  .auth-panel{
+    display:flex; align-items:center; justify-content:center;
+    padding:40px;
+  }
+  .auth-card{ width:100%; max-width:380px; }
+  .auth-tabs{
+    display:flex; gap:4px; background:var(--surface); border:1px solid var(--hairline); border-radius:10px; padding:4px; margin-bottom:28px;
+  }
+  .auth-tab{
+    flex:1; text-align:center; padding:9px 0; border-radius:7px; background:transparent; border:none; color:var(--text-dim); font-size:13.5px; font-weight:600; transition:all .15s;
+  }
+  .auth-tab.active{ background:var(--surface-3); color:var(--text); box-shadow:inset 0 0 0 1px var(--hairline); }
+
+  .auth-card h2{ font-family:'Fraunces',serif; font-size:24px; font-weight:600; margin-bottom:6px; }
+  .auth-card .sub{ color:var(--text-dim); font-size:13.5px; margin-bottom:26px; }
+
+  .field{ margin-bottom:16px; }
+  .field label{ display:block; font-size:12px; color:var(--text-dim); margin-bottom:6px; font-weight:500; }
+  .field input, .field select{
+    width:100%; background:var(--surface); border:1px solid var(--hairline); color:var(--text);
+    padding:11px 13px; border-radius:8px; font-size:14px; outline:none; transition:border-color .15s, background .15s;
+  }
+  .field input:focus, .field select:focus{ border-color:var(--brass-dim); background:var(--surface-2); }
+  .field-row{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .hint{ font-size:11.5px; color:var(--text-faint); margin-top:6px; }
+
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    padding:11px 18px; border-radius:8px; border:1px solid transparent; font-size:14px; font-weight:600;
+    transition:transform .1s, filter .15s, background .15s; width:100%;
+  }
+  .btn:active{ transform:scale(0.98); }
+  .btn-primary{ background:linear-gradient(155deg, var(--brass-soft), var(--brass)); color:#1a1400; }
+  .btn-primary:hover{ filter:brightness(1.08); }
+  .btn-ghost{ background:var(--surface); border-color:var(--hairline); color:var(--text); }
+  .btn-ghost:hover{ background:var(--surface-3); }
+  .btn-sm{ padding:8px 14px; font-size:13px; width:auto; }
+  .btn-danger{ background:var(--surface); border-color:#5a2a2e; color:var(--rose); }
+
+  .auth-error{
+    background:rgba(229,116,122,0.1); border:1px solid rgba(229,116,122,0.35); color:var(--rose);
+    padding:10px 13px; border-radius:8px; font-size:13px; margin-bottom:16px; display:none;
+  }
+  .auth-note{ text-align:center; font-size:12.5px; color:var(--text-faint); margin-top:20px; }
+
+  /* ==================== APP VIEW ==================== */
+  #app-view{ display:grid; grid-template-columns:236px 1fr; min-height:100vh; }
+  .sidebar{
+    background:var(--surface); border-right:1px solid var(--hairline-soft);
+    padding:22px 16px; display:flex; flex-direction:column; position:sticky; top:0; height:100vh;
+  }
+  .sidebar .brand{ padding:0 8px; margin-bottom:8px; }
+  .sidebar .brand-name{ font-size:16px; }
+  .demo-badge{
+    margin:10px 8px 22px; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--brass-soft);
+    border:1px solid var(--brass-dim); border-radius:6px; padding:5px 8px; text-align:center; opacity:0.85;
+  }
+  .nav-group{ margin-bottom:4px; }
+  .nav-label{ font-size:10.5px; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-faint); padding:0 12px; margin:14px 0 8px; }
+  .nav-item{
+    display:flex; align-items:center; gap:11px; padding:9px 12px; border-radius:8px; color:var(--text-dim);
+    background:transparent; border:none; width:100%; text-align:left; font-size:13.5px; font-weight:500; transition:all .12s;
+  }
+  .nav-item svg{ width:16px; height:16px; opacity:0.8; flex-shrink:0; }
+  .nav-item:hover{ background:var(--surface-3); color:var(--text); }
+  .nav-item.active{ background:var(--surface-3); color:var(--brass-soft); box-shadow:inset 2px 0 0 var(--brass); }
+  .sidebar-footer{ margin-top:auto; padding-top:14px; border-top:1px solid var(--hairline-soft); }
+  .user-chip{ display:flex; align-items:center; gap:10px; padding:8px; border-radius:8px; }
+  .user-avatar{
+    width:32px; height:32px; border-radius:50%; background:linear-gradient(155deg,var(--brass-soft),var(--brass-dim));
+    display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; color:#1a1400; flex-shrink:0;
+  }
+  .user-chip .uname{ font-size:13px; font-weight:600; }
+  .user-chip .uhandle{ font-size:11.5px; color:var(--text-faint); }
+
+  .main{ padding:32px 40px 60px; max-width:1180px; }
+  .view-panel{ display:none; }
+  .view-panel.active{ display:block; }
+
+  .page-head{ display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:28px; flex-wrap:wrap; gap:14px; }
+  .page-head h1{ font-family:'Fraunces',serif; font-size:28px; font-weight:600; }
+  .page-head .sub{ color:var(--text-dim); font-size:13.5px; margin-top:4px; }
+
+  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  .grid-3{ display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+
+  .card{
+    background:var(--surface); border:1px solid var(--hairline-soft); border-radius:var(--radius-lg); padding:22px;
+  }
+  .card-title{ font-size:13px; font-weight:600; color:var(--text-dim); letter-spacing:0.02em; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; }
+
+  /* balance hero */
+  .balance-hero{
+    background: linear-gradient(160deg, var(--surface-2), var(--surface));
+    border:1px solid var(--hairline-soft); border-radius:var(--radius-lg); padding:28px 30px; margin-bottom:20px;
+    position:relative; overflow:hidden;
+  }
+  .balance-hero::after{
+    content:''; position:absolute; top:-60%; right:-10%; width:320px; height:320px; border-radius:50%;
+    background:radial-gradient(circle, rgba(201,162,39,0.09), transparent 70%);
+  }
+  .balance-label{ font-size:12px; color:var(--text-dim); letter-spacing:0.04em; }
+  .balance-amount{ font-family:'JetBrains Mono',monospace; font-size:44px; font-weight:600; margin-top:8px; letter-spacing:-0.01em; }
+  .balance-amount .cents{ font-size:24px; color:var(--text-dim); }
+  .balance-meta{ display:flex; gap:22px; margin-top:16px; }
+  .balance-meta .m-item{ font-size:12.5px; color:var(--text-dim); }
+  .balance-meta .m-item b{ color:var(--text); font-family:'JetBrains Mono',monospace; font-weight:600; }
+
+  .acct-card{
+    background:var(--surface); border:1px solid var(--hairline-soft); border-radius:var(--radius-lg); padding:20px;
+    display:flex; flex-direction:column; gap:10px; position:relative; overflow:hidden;
+  }
+  .acct-card .tag{ font-size:10.5px; letter-spacing:0.1em; text-transform:uppercase; color:var(--brass-soft); }
+  .acct-card .num{ font-family:'JetBrains Mono',monospace; font-size:12.5px; color:var(--text-faint); }
+  .acct-card .bal{ font-family:'JetBrains Mono',monospace; font-size:24px; font-weight:600; margin-top:2px; }
+  .acct-card svg.spark{ margin-top:4px; }
+  .acct-card .foil{ position:absolute; top:0; left:0; width:3px; height:100%; background:linear-gradient(180deg,var(--brass-soft),var(--brass-dim)); }
+
+  .quick-actions{ display:flex; gap:10px; margin-top:18px; flex-wrap:wrap; }
+  .qa-btn{
+    display:flex; align-items:center; gap:8px; padding:10px 16px; border-radius:9px; background:var(--surface-3);
+    border:1px solid var(--hairline); color:var(--text); font-size:13px; font-weight:600;
+  }
+  .qa-btn:hover{ border-color:var(--brass-dim); }
+  .qa-btn svg{ width:15px; height:15px; color:var(--brass-soft); }
+
+  table{ width:100%; border-collapse:collapse; }
+  th{ text-align:left; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:var(--text-faint); font-weight:600; padding:0 10px 10px; border-bottom:1px solid var(--hairline-soft); }
+  td{ padding:12px 10px; font-size:13.5px; border-bottom:1px solid var(--hairline-soft); vertical-align:middle; }
+  tr:last-child td{ border-bottom:none; }
+  .tx-desc{ font-weight:500; }
+  .tx-cat{ font-size:11px; color:var(--text-faint); }
+  .amt{ font-family:'JetBrains Mono',monospace; font-weight:600; text-align:right; }
+  .amt.pos{ color:var(--teal); }
+  .amt.neg{ color:var(--text); }
+  .bal-col{ font-family:'JetBrains Mono',monospace; color:var(--text-dim); text-align:right; }
+  .cat-pill{
+    display:inline-block; font-size:10.5px; padding:3px 9px; border-radius:20px; background:var(--surface-3);
+    color:var(--text-dim); border:1px solid var(--hairline);
+  }
+
+  .empty-state{ text-align:center; padding:50px 20px; color:var(--text-faint); }
+  .empty-state svg{ width:38px; height:38px; margin-bottom:12px; opacity:0.5; }
+
+  .filters{ display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap; }
+  .filters select, .filters input{
+    background:var(--surface); border:1px solid var(--hairline); color:var(--text); padding:9px 12px; border-radius:8px; font-size:13px;
+  }
+
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(6,8,12,0.7); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center;
+    z-index:100; padding:20px;
+  }
+  .modal{
+    background:var(--surface-2); border:1px solid var(--hairline); border-radius:var(--radius-lg); padding:26px; width:100%; max-width:420px;
+    box-shadow:var(--shadow);
+  }
+  .modal h3{ font-family:'Fraunces',serif; font-size:19px; margin-bottom:4px; }
+  .modal .sub{ font-size:12.5px; color:var(--text-dim); margin-bottom:20px; }
+  .modal-actions{ display:flex; gap:10px; margin-top:22px; }
+
+  .toast{
+    position:fixed; bottom:24px; right:24px; background:var(--surface-3); border:1px solid var(--brass-dim); color:var(--text);
+    padding:13px 18px; border-radius:10px; font-size:13.5px; box-shadow:var(--shadow); z-index:200;
+    display:flex; align-items:center; gap:10px; animation:toast-in .25s ease;
+  }
+  @keyframes toast-in{ from{ transform:translateY(10px); opacity:0; } to{ transform:translateY(0); opacity:1; } }
+  .toast svg{ width:16px; height:16px; color:var(--teal); }
+
+  /* AI assistant */
+  .ai-wrap{ display:grid; grid-template-columns:1fr 280px; gap:20px; height:calc(100vh - 180px); min-height:480px; }
+  .ai-chat{ display:flex; flex-direction:column; background:var(--surface); border:1px solid var(--hairline-soft); border-radius:var(--radius-lg); overflow:hidden; }
+  .ai-messages{ flex:1; overflow-y:auto; padding:22px; display:flex; flex-direction:column; gap:14px; }
+  .msg{ max-width:78%; padding:12px 15px; border-radius:12px; font-size:13.8px; line-height:1.55; }
+  .msg.user{ align-self:flex-end; background:linear-gradient(155deg,var(--brass-soft),var(--brass)); color:#1a1400; border-bottom-right-radius:3px; }
+  .msg.assistant{ align-self:flex-start; background:var(--surface-3); border:1px solid var(--hairline); border-bottom-left-radius:3px; white-space:pre-wrap; }
+  .msg.typing{ display:flex; gap:4px; align-items:center; padding:14px 16px; }
+  .typing-dot{ width:6px; height:6px; border-radius:50%; background:var(--text-faint); animation:tdot 1.2s infinite ease-in-out; }
+  .typing-dot:nth-child(2){ animation-delay:0.15s; }
+  .typing-dot:nth-child(3){ animation-delay:0.3s; }
+  @keyframes tdot{ 0%,60%,100%{ opacity:0.3; transform:translateY(0);} 30%{ opacity:1; transform:translateY(-3px);} }
+  .ai-input-bar{ display:flex; gap:10px; padding:16px; border-top:1px solid var(--hairline-soft); }
+  .ai-input-bar input{
+    flex:1; background:var(--surface-3); border:1px solid var(--hairline); color:var(--text); padding:12px 14px; border-radius:9px; font-size:13.8px; outline:none;
+  }
+  .ai-input-bar input:focus{ border-color:var(--brass-dim); }
+  .ai-input-bar button{ width:auto; padding:0 20px; }
+  .ai-side{ display:flex; flex-direction:column; gap:12px; }
+  .ai-suggest{ background:var(--surface); border:1px solid var(--hairline-soft); border-radius:12px; padding:14px; font-size:12.5px; color:var(--text-dim); cursor:pointer; transition:border-color .12s; }
+  .ai-suggest:hover{ border-color:var(--brass-dim); color:var(--text); }
+  .ai-side-title{ font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-faint); margin-bottom:2px; }
+
+  .settings-row{ display:flex; justify-content:space-between; align-items:center; padding:16px 0; border-bottom:1px solid var(--hairline-soft); }
+  .settings-row:last-child{ border-bottom:none; }
+  .settings-row .label{ font-size:13.5px; font-weight:500; }
+  .settings-row .desc{ font-size:12px; color:var(--text-faint); margin-top:2px; }
+
+  @media (max-width: 900px){
+    #auth-view{ grid-template-columns:1fr; }
+    .auth-hero{ display:none; }
+    #app-view{ grid-template-columns:1fr; }
+    .sidebar{ position:fixed; z-index:50; transform:translateX(-100%); transition:transform .2s; width:236px; }
+    .sidebar.open{ transform:translateX(0); }
+    .main{ padding:20px; }
+    .grid-2, .grid-3{ grid-template-columns:1fr; }
+    .ai-wrap{ grid-template-columns:1fr; height:auto; }
+  }
+
+  /* ---------- money rain backdrop ---------- */
+  .money-rain{
+    position:fixed; inset:0; overflow:hidden; pointer-events:none; z-index:5;
+  }
+  .money-bill{
+    position:absolute; top:-12%; left:0;
+    opacity:0.85; filter:drop-shadow(0 3px 6px rgba(0,0,0,0.45));
+    animation-name:money-fall; animation-timing-function:linear; animation-iteration-count:infinite;
+    will-change:transform;
+  }
+  @keyframes money-fall{
+    0%{ transform:translateY(-10vh) translateX(0) rotate(0deg); }
+    100%{ transform:translateY(112vh) translateX(var(--drift,0px)) rotate(var(--spin,360deg)); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .money-rain{ display:none; }
+  }
+
+  .icon-btn{
+    width:36px; height:36px; border-radius:8px; background:var(--surface-3); border:1px solid var(--hairline);
+    display:flex; align-items:center; justify-content:center; color:var(--text-dim);
+  }
+  .topbar-mobile{ display:none; align-items:center; justify-content:space-between; padding:14px 18px; border-bottom:1px solid var(--hairline-soft); background:var(--surface); position:sticky; top:0; z-index:40; }
+  @media (max-width:900px){ .topbar-mobile{ display:flex; } }
+
+  /* ==================== EXTENDED FEATURE STYLES ==================== */
+  .sub-tabs{ display:flex; gap:6px; margin-bottom:22px; flex-wrap:wrap; border-bottom:1px solid var(--hairline-soft); padding-bottom:0; }
+  .sub-tab{ background:transparent; border:none; color:var(--text-dim); font-size:13px; font-weight:600; padding:9px 4px; margin-right:14px; border-bottom:2px solid transparent; }
+  .sub-tab.active{ color:var(--brass-soft); border-bottom-color:var(--brass); }
+  .sub-tab:hover{ color:var(--text); }
+
+  .badge{ display:inline-block; font-size:10.5px; padding:3px 9px; border-radius:20px; font-weight:600; letter-spacing:0.02em; }
+  .badge-green{ background:rgba(45,212,191,0.12); color:var(--teal); border:1px solid rgba(45,212,191,0.3); }
+  .badge-amber{ background:rgba(201,162,39,0.12); color:var(--brass-soft); border:1px solid rgba(201,162,39,0.3); }
+  .badge-red{ background:rgba(229,116,122,0.12); color:var(--rose); border:1px solid rgba(229,116,122,0.3); }
+  .badge-grey{ background:var(--surface-3); color:var(--text-dim); border:1px solid var(--hairline); }
+
+  .toggle{ position:relative; display:inline-block; width:40px; height:23px; flex-shrink:0; }
+  .toggle input{ opacity:0; width:0; height:0; position:absolute; }
+  .toggle .slider{ position:absolute; inset:0; background:var(--surface-3); border:1px solid var(--hairline); border-radius:20px; transition:.15s; cursor:pointer; }
+  .toggle .slider::before{ content:''; position:absolute; width:17px; height:17px; left:2px; top:2px; background:var(--text-dim); border-radius:50%; transition:.15s; }
+  .toggle input:checked + .slider{ background:linear-gradient(155deg,var(--brass-soft),var(--brass)); border-color:var(--brass-dim); }
+  .toggle input:checked + .slider::before{ transform:translateX(17px); background:#1a1400; }
+
+  .list-row{ display:flex; align-items:center; justify-content:space-between; padding:14px 0; border-bottom:1px solid var(--hairline-soft); gap:14px; }
+  .list-row:last-child{ border-bottom:none; }
+  .list-row .title{ font-size:13.5px; font-weight:600; }
+  .list-row .meta{ font-size:12px; color:var(--text-faint); margin-top:2px; }
+
+  .progress-track{ height:8px; border-radius:5px; background:var(--surface-3); overflow:hidden; }
+  .progress-fill{ height:100%; background:linear-gradient(90deg,var(--brass-dim),var(--brass-soft)); border-radius:5px; }
+
+  .physical-card{
+    position:relative; border-radius:16px; padding:20px 22px; height:150px; overflow:hidden; color:#fff;
+    display:flex; flex-direction:column; justify-content:space-between;
+    background: linear-gradient(140deg, #1c2333, #0c0f18 60%, #171310);
+    border:1px solid var(--hairline-soft); box-shadow:var(--shadow);
+  }
+  .physical-card.frozen{ filter:grayscale(0.85) brightness(0.75); }
+  .physical-card::after{ content:''; position:absolute; top:-40%; right:-15%; width:220px; height:220px; border-radius:50%;
+    background:radial-gradient(circle, rgba(201,162,39,0.18), transparent 70%); }
+  .physical-card .pc-top{ display:flex; justify-content:space-between; align-items:flex-start; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--brass-soft); }
+  .physical-card .pc-num{ font-family:'JetBrains Mono',monospace; font-size:16.5px; letter-spacing:0.12em; }
+  .physical-card .pc-bottom{ display:flex; justify-content:space-between; align-items:flex-end; font-size:11.5px; color:rgba(255,255,255,0.65); }
+  .physical-card .pc-name{ font-size:12.5px; color:#fff; text-transform:uppercase; letter-spacing:0.04em; }
+
+  .accordion-item{ border-bottom:1px solid var(--hairline-soft); }
+  .accordion-item:last-child{ border-bottom:none; }
+  .accordion-head{ width:100%; background:transparent; border:none; color:var(--text); text-align:left; padding:15px 2px; font-size:13.5px; font-weight:600; display:flex; justify-content:space-between; align-items:center; }
+  .accordion-head svg{ width:15px; height:15px; color:var(--text-faint); transition:transform .15s; }
+  .accordion-item.open .accordion-head svg{ transform:rotate(180deg); }
+  .accordion-body{ display:none; padding:0 2px 16px; font-size:13px; color:var(--text-dim); line-height:1.6; }
+  .accordion-item.open .accordion-body{ display:block; }
+
+  .gauge-wrap{ display:flex; flex-direction:column; align-items:center; padding:10px 0 4px; }
+  .gauge-score{ font-family:'JetBrains Mono',monospace; font-size:38px; font-weight:700; margin-top:-64px; }
+  .gauge-label{ font-size:12px; color:var(--text-dim); margin-top:2px; }
+
+  .stat-tile{ background:var(--surface-2); border:1px solid var(--hairline-soft); border-radius:12px; padding:16px; }
+  .stat-tile .k{ font-size:11px; color:var(--text-faint); text-transform:uppercase; letter-spacing:0.06em; }
+  .stat-tile .v{ font-family:'JetBrains Mono',monospace; font-size:19px; font-weight:600; margin-top:6px; }
+
+  .qr-box{ width:180px; height:180px; margin:0 auto; background:#fff; border-radius:12px; padding:12px; display:flex; align-items:center; justify-content:center; }
+  .kyc-step{ display:flex; align-items:center; gap:12px; padding:14px 0; border-bottom:1px solid var(--hairline-soft); }
+  .kyc-step:last-child{ border-bottom:none; }
+  .kyc-dot{ width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:12px; font-weight:700; }
+  .kyc-dot.done{ background:var(--teal); color:#062018; }
+  .kyc-dot.pending{ background:var(--surface-3); color:var(--text-faint); border:1px solid var(--hairline); }
+  .upload-box{ border:1.5px dashed var(--hairline); border-radius:10px; padding:20px; text-align:center; color:var(--text-faint); font-size:12.5px; cursor:pointer; transition:border-color .15s; }
+  .upload-box:hover{ border-color:var(--brass-dim); color:var(--text-dim); }
+  .upload-box input{ display:none; }
+
+  .biller-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:10px; margin-bottom:18px; }
+  .biller-tile{ background:var(--surface-2); border:1px solid var(--hairline-soft); border-radius:10px; padding:14px 10px; text-align:center; font-size:12px; font-weight:600; cursor:pointer; }
+  .biller-tile.active{ border-color:var(--brass-dim); background:var(--surface-3); color:var(--brass-soft); }
+  .biller-tile svg{ width:20px; height:20px; margin-bottom:6px; color:var(--brass-soft); }
+
+  .chip-row{ display:flex; gap:8px; flex-wrap:wrap; }
+  .chip{ padding:6px 12px; border-radius:20px; background:var(--surface-3); border:1px solid var(--hairline); font-size:12px; color:var(--text-dim); cursor:pointer; }
+  .chip.active{ border-color:var(--brass-dim); color:var(--brass-soft); }
+
+  .fx-row{ display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px dashed var(--hairline-soft); font-size:13px; }
+  .fx-row:last-child{ border-bottom:none; }
+</style>
+</head>
+<body>
+
+<div class="money-rain" id="money-rain" aria-hidden="true"></div>
+
+<!-- ==================== AUTH VIEW ==================== -->
+<div id="auth-view">
+  <div class="auth-hero">
+    <div class="brand">
+      <div class="brand-mark">D</div>
+      <div>
+        <div class="brand-name">De-Bak trust</div>
+        <div class="brand-sub">Private Banking</div>
+      </div>
+    </div>
+
+    <div class="hero-copy">
+      <div class="hero-eyebrow">Est. for this demo</div>
+      <h1>Banking, kept in order.</h1>
+      <p>Accounts, transfers, and a ledger you can actually read — with an assistant that understands your statement. This is a self-contained demo; no real funds are held or moved.</p>
+
+      <div class="ledger-tape-wrap">
+        <div class="ledger-tape" id="ledger-tape"></div>
+      </div>
+    </div>
+
+    <div class="hero-footer">
+      <span><span class="dot"></span> FDIC — not applicable (demo)</span>
+      <span><span class="dot"></span> 256-bit encrypted · Data stored securely</span>
+    </div>
+  </div>
+
+  <div class="auth-panel">
+    <div class="auth-card">
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tab-signin" onclick="switchAuthTab('signin')">Sign In</button>
+        <button class="auth-tab" id="tab-signup" onclick="switchAuthTab('signup')">Open Account</button>
+      </div>
+
+      <div class="auth-error" id="auth-error"></div>
+
+      <!-- SIGN IN -->
+      <form id="form-signin" onsubmit="return handleSignIn(event)">
+        <h2>Welcome back</h2>
+        <div class="sub">Sign in to view your accounts.</div>
+        <div class="field">
+          <label>Username</label>
+          <input type="text" id="si-username" autocomplete="username" required placeholder="e.g. jmorgan">
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="si-password" autocomplete="current-password" required placeholder="••••••••">
+        </div>
+        <button class="btn btn-primary" type="submit">Sign In</button>
+      </form>
+
+      <!-- SIGN UP -->
+      <form id="form-signup" class="hidden" onsubmit="return handleSignUp(event)">
+        <h2>Open your account</h2>
+        <div class="sub">Takes under a minute. Two accounts, one login.</div>
+        <div class="field">
+          <label>Full name</label>
+          <input type="text" id="su-name" required placeholder="Jordan Morgan">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Username</label>
+            <input type="text" id="su-username" required placeholder="jmorgan">
+          </div>
+          <div class="field">
+            <label>Email</label>
+            <input type="email" id="su-email" required placeholder="you@email.com">
+          </div>
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="su-password" required minlength="4" placeholder="At least 4 characters">
+        </div>
+        <div class="field">
+          <label>Opening deposit (checking)</label>
+          <input type="number" id="su-deposit" value="5000" min="0" step="1">
+          <div class="hint">Sample transactions will be added so there's data to explore.</div>
+        </div>
+        <button class="btn btn-primary" type="submit">Create Account</button>
+      </form>
+
+      <div class="auth-note">Demo application — no real money, for exploration only.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== APP VIEW ==================== -->
+<div id="app-view" class="hidden">
+  <div class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-mark">D</div>
+      <div>
+        <div class="brand-name">De-Bak trust</div>
+      </div>
+    </div>
+    <div class="demo-badge">Demo · No Real Funds</div>
+
+    <div class="nav-group">
+      <button class="nav-item active" data-view="dashboard" onclick="switchView('dashboard')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        Dashboard
+      </button>
+      <button class="nav-item" data-view="accounts" onclick="switchView('accounts')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+        Accounts
+      </button>
+      <button class="nav-item" data-view="transactions" onclick="switchView('transactions')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+        Transactions
+      </button>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">Move Money</div>
+      <button class="nav-item" data-view="transfer" onclick="switchView('transfer')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 10l-4 4 4 4"/><path d="M3 14h13a5 5 0 0 0 5-5V7"/><path d="M17 14a5 5 0 0 1-5 5"/></svg>
+        Transfer &amp; Send
+      </button>
+      <button class="nav-item" data-view="billpay" onclick="switchView('billpay')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h10M7 16h6"/></svg>
+        Bills &amp; Airtime
+      </button>
+      <button class="nav-item" data-view="beneficiaries" onclick="switchView('beneficiaries')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M17 8h4M19 6v4"/></svg>
+        Beneficiaries
+      </button>
+      <button class="nav-item" data-view="scheduled" onclick="switchView('scheduled')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+        Scheduled
+      </button>
+      <button class="nav-item" data-view="qrpay" onclick="switchView('qrpay')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM19 14h2M14 19h2M19 19h2"/></svg>
+        QR &amp; Cardless
+      </button>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">Cards</div>
+      <button class="nav-item" data-view="cards" onclick="switchView('cards')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+        My Cards
+      </button>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">Save &amp; Borrow</div>
+      <button class="nav-item" data-view="goals" onclick="switchView('goals')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>
+        Savings Goals
+      </button>
+      <button class="nav-item" data-view="deposits" onclick="switchView('deposits')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21h18M5 21V9l7-5 7 5v12M9 21v-6h6v6"/></svg>
+        Fixed Deposits
+      </button>
+      <button class="nav-item" data-view="loans" onclick="switchView('loans')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        Loans
+      </button>
+      <button class="nav-item" data-view="insights" onclick="switchView('insights')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg>
+        Insights &amp; More
+      </button>
+      <button class="nav-item" data-view="assistant" onclick="switchView('assistant')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3a5 5 0 0 0-5 5v3a5 5 0 0 0 10 0V8a5 5 0 0 0-5-5z"/><path d="M5 11v1a7 7 0 0 0 14 0v-1M12 19v3"/></svg>
+        AI Assistant
+      </button>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">Manage</div>
+      <button class="nav-item" data-view="statements" onclick="switchView('statements')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg>
+        Statements
+      </button>
+      <button class="nav-item" data-view="profile" onclick="switchView('profile')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+        Profile &amp; KYC
+      </button>
+      <button class="nav-item" data-view="security" onclick="switchView('security')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6z"/></svg>
+        Security
+      </button>
+      <button class="nav-item" data-view="support" onclick="switchView('support')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 1 1 4.5 2.6c-.9.5-1.6 1-1.6 2.4M12 17h.01"/></svg>
+        Support
+      </button>
+      <button class="nav-item" data-view="settings" onclick="switchView('settings')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 0 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 0 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34H9a1.7 1.7 0 0 0 1-1.55V3a2 2 0 0 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9a1.7 1.7 0 0 0 1.55 1H21a2 2 0 0 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>
+        Settings
+      </button>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="user-avatar" id="sb-avatar">J</div>
+        <div>
+          <div class="uname" id="sb-name">—</div>
+          <div class="uhandle" id="sb-handle">—</div>
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-sm" style="width:100%; margin-top:10px;" onclick="handleSignOut()">Sign Out</button>
+    </div>
+  </div>
+
+  <div>
+    <div class="topbar-mobile">
+      <button class="icon-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <div class="brand-name" style="font-size:15px;">De-Bak trust</div>
+      <div style="width:36px;"></div>
+    </div>
+
+    <div class="main">
+
+      <!-- DASHBOARD -->
+      <div class="view-panel active" id="panel-dashboard">
+        <div class="page-head">
+          <div>
+            <h1 id="greeting">Good afternoon</h1>
+            <div class="sub" id="today-date"></div>
+          </div>
+          <div class="quick-actions" style="margin-top:0;">
+            <button class="qa-btn" onclick="openModal('deposit')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Add Money</button>
+            <button class="qa-btn" onclick="switchView('transfer')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3l4 4-4 4M21 7H9M7 21l-4-4 4-4M3 17h12"/></svg>Transfer</button>
+            <button class="qa-btn" onclick="openModal('send')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>Send</button>
+          </div>
+        </div>
+
+        <div class="balance-hero">
+          <div class="balance-label">Total balance across all accounts</div>
+          <div class="balance-amount mono" id="total-balance">$0<span class="cents">.00</span></div>
+          <div class="balance-meta">
+            <div class="m-item">In (30d) <b id="meta-in">$0.00</b></div>
+            <div class="m-item">Out (30d) <b id="meta-out">$0.00</b></div>
+            <div class="m-item">Accounts <b id="meta-accts">0</b></div>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-bottom:20px;" id="dash-accounts"></div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">Recent activity <a style="font-size:12px; color:var(--brass-soft); cursor:pointer; font-weight:600;" onclick="switchView('transactions')">View all →</a></div>
+            <div id="dash-recent"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Spending by category (30d)</div>
+            <div id="dash-spend"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACCOUNTS -->
+      <div class="view-panel" id="panel-accounts">
+        <div class="page-head">
+          <div><h1>Accounts</h1><div class="sub">Every account, in full detail.</div></div>
+        </div>
+        <div id="accounts-list"></div>
+      </div>
+
+      <!-- TRANSFER -->
+      <div class="view-panel" id="panel-transfer">
+        <div class="page-head"><div><h1>Transfer</h1><div class="sub">Move money between your own accounts.</div></div></div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">Between my accounts</div>
+            <form onsubmit="return handleTransfer(event)">
+              <div class="field">
+                <label>From</label>
+                <select id="tr-from" required></select>
+              </div>
+              <div class="field">
+                <label>To</label>
+                <select id="tr-to" required></select>
+              </div>
+              <div class="field">
+                <label>Amount</label>
+                <input type="number" id="tr-amount" min="0.01" step="0.01" required placeholder="0.00">
+              </div>
+              <div class="field">
+                <label>Memo (optional)</label>
+                <input type="text" id="tr-memo" placeholder="e.g. Move to savings">
+              </div>
+              <button class="btn btn-primary" type="submit">Transfer Funds</button>
+            </form>
+          </div>
+          <div class="card">
+            <div class="card-title">Send to someone else</div>
+            <form onsubmit="return handleSend(event)">
+              <div class="field">
+                <label>From account</label>
+                <select id="sd-from" required></select>
+              </div>
+              <div class="field">
+                <label>Recipient name</label>
+                <input type="text" id="sd-name" required placeholder="e.g. Alex Rivera">
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label>Amount</label>
+                  <input type="number" id="sd-amount" min="0.01" step="0.01" required placeholder="0.00">
+                </div>
+                <div class="field">
+                  <label>Category</label>
+                  <select id="sd-category">
+                    <option>Transfer</option><option>Rent</option><option>Gift</option><option>Shared Expense</option><option>Other</option>
+                  </select>
+                </div>
+              </div>
+              <div class="field">
+                <label>Memo (optional)</label>
+                <input type="text" id="sd-memo" placeholder="What's this for?">
+              </div>
+              <button class="btn btn-primary" type="submit">Send Money</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- TRANSACTIONS -->
+      <div class="view-panel" id="panel-transactions">
+        <div class="page-head"><div><h1>Transactions</h1><div class="sub">Full ledger across every account.</div></div></div>
+        <div class="filters">
+          <select id="f-account" onchange="renderTransactions()"><option value="all">All accounts</option></select>
+          <select id="f-category" onchange="renderTransactions()"><option value="all">All categories</option></select>
+          <select id="f-range" onchange="renderTransactions()">
+            <option value="30">Last 30 days</option>
+            <option value="90">Last 90 days</option>
+            <option value="365">Last year</option>
+            <option value="all" selected>All time</option>
+          </select>
+          <input type="text" id="f-search" placeholder="Search description..." oninput="renderTransactions()">
+        </div>
+        <div class="card" style="padding:8px 22px 18px;">
+          <table>
+            <thead><tr><th>Date</th><th>Description</th><th>Account</th><th>Category</th><th style="text-align:right;">Amount</th><th style="text-align:right;">Balance</th></tr></thead>
+            <tbody id="tx-table-body"></tbody>
+          </table>
+          <div class="empty-state hidden" id="tx-empty">No transactions match these filters.</div>
+        </div>
+      </div>
+
+      <!-- BILL PAY -->
+      <div class="view-panel" id="panel-billpay">
+        <div class="page-head"><div><h1>Bills &amp; Airtime</h1><div class="sub">Pay utilities, buy airtime, top up data or your mobile wallet.</div></div></div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">Choose a biller</div>
+            <div class="biller-grid" id="biller-grid"></div>
+            <form onsubmit="return handleBillPay(event)">
+              <input type="hidden" id="bp-category">
+              <div class="field"><label>Pay from</label><select id="bp-account" required></select></div>
+              <div class="field"><label>Account / meter / phone number</label><input type="text" id="bp-ref" required placeholder="e.g. 08012345678 or meter no."></div>
+              <div class="field"><label>Amount</label><input type="number" id="bp-amount" min="0.01" step="0.01" required placeholder="0.00"></div>
+              <button class="btn btn-primary" type="submit">Pay Now</button>
+            </form>
+          </div>
+          <div class="card">
+            <div class="card-title">Recent bill payments</div>
+            <div id="bp-recent"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BENEFICIARIES -->
+      <div class="view-panel" id="panel-beneficiaries">
+        <div class="page-head">
+          <div><h1>Beneficiaries</h1><div class="sub">Save recipients for faster transfers next time.</div></div>
+          <button class="qa-btn" onclick="openModal('addBeneficiary')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Add Beneficiary</button>
+        </div>
+        <div class="card"><div id="beneficiary-list"></div></div>
+      </div>
+
+      <!-- SCHEDULED TRANSFERS -->
+      <div class="view-panel" id="panel-scheduled">
+        <div class="page-head">
+          <div><h1>Scheduled &amp; Recurring</h1><div class="sub">Set up transfers that repeat automatically.</div></div>
+          <button class="qa-btn" onclick="openModal('addScheduled')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>New Schedule</button>
+        </div>
+        <div class="card"><div id="scheduled-list"></div></div>
+      </div>
+
+      <!-- QR & CARDLESS -->
+      <div class="view-panel" id="panel-qrpay">
+        <div class="page-head"><div><h1>QR &amp; Cardless</h1><div class="sub">Get paid by QR code, or withdraw cash without your card.</div></div></div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">My receive QR</div>
+            <div class="qr-box" id="qr-receive"></div>
+            <div style="text-align:center; margin-top:14px; font-size:12.5px; color:var(--text-dim);">Anyone can scan this to send money straight to your primary account.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Cardless ATM withdrawal</div>
+            <div class="sub" style="margin-bottom:14px;">Generate a one-time code to withdraw cash at any De-Bak trust ATM — no card needed.</div>
+            <form onsubmit="return handleCardlessCode(event)">
+              <div class="field"><label>From account</label><select id="cl-account" required></select></div>
+              <div class="field"><label>Amount</label><input type="number" id="cl-amount" min="20" step="10" required placeholder="0.00"></div>
+              <button class="btn btn-primary" type="submit">Generate Code</button>
+            </form>
+            <div id="cl-code-box"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARDS -->
+      <div class="view-panel" id="panel-cards">
+        <div class="page-head">
+          <div><h1>My Cards</h1><div class="sub">Freeze, manage limits, or issue a new virtual card.</div></div>
+          <button class="qa-btn" onclick="openModal('newVirtualCard')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>New Virtual Card</button>
+        </div>
+        <div id="cards-list" class="grid-2"></div>
+      </div>
+
+      <!-- SAVINGS GOALS -->
+      <div class="view-panel" id="panel-goals">
+        <div class="page-head">
+          <div><h1>Savings Goals</h1><div class="sub">Set a target and automate your way there.</div></div>
+          <button class="qa-btn" onclick="openModal('addGoal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>New Goal</button>
+        </div>
+        <div id="goals-list" class="grid-2"></div>
+      </div>
+
+      <!-- FIXED DEPOSITS / INVESTMENTS -->
+      <div class="view-panel" id="panel-deposits">
+        <div class="page-head">
+          <div><h1>Fixed Deposits</h1><div class="sub">Lock in funds for a term and earn a fixed rate.</div></div>
+          <button class="qa-btn" onclick="openModal('newDeposit')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>New Deposit</button>
+        </div>
+        <div class="card"><div id="deposits-list"></div></div>
+      </div>
+
+      <!-- LOANS -->
+      <div class="view-panel" id="panel-loans">
+        <div class="page-head">
+          <div><h1>Loans</h1><div class="sub">Apply for a loan and track repayment.</div></div>
+          <button class="qa-btn" onclick="openModal('applyLoan')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Apply for a Loan</button>
+        </div>
+        <div class="card"><div id="loans-list"></div></div>
+      </div>
+
+      <!-- STATEMENTS -->
+      <div class="view-panel" id="panel-statements">
+        <div class="page-head"><div><h1>Statements</h1><div class="sub">Download a statement or share your account details.</div></div></div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">Generate a statement</div>
+            <form onsubmit="return handleGenerateStatement(event)">
+              <div class="field"><label>Account</label><select id="st-account" required></select></div>
+              <div class="field"><label>Period</label>
+                <select id="st-period"><option value="30">Last 30 days</option><option value="90">Last 90 days</option><option value="365">Last 12 months</option><option value="all">All time</option></select>
+              </div>
+              <button class="btn btn-primary" type="submit">Download Statement (PDF-style text)</button>
+            </form>
+          </div>
+          <div class="card">
+            <div class="card-title">Share account details</div>
+            <div id="account-details-share"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROFILE & KYC -->
+      <div class="view-panel" id="panel-profile">
+        <div class="page-head"><div><h1>Profile &amp; KYC</h1><div class="sub">Keep your identity verification up to date.</div></div></div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">Verification status</div>
+            <div id="kyc-steps"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Upload documents</div>
+            <label class="upload-box" style="display:block; margin-bottom:12px;">
+              <input type="file" id="kyc-id-file" accept="image/*,.pdf" onchange="handleKycUpload('id', this)">
+              📄 Click to upload government ID
+            </label>
+            <label class="upload-box" style="display:block;">
+              <input type="file" id="kyc-addr-file" accept="image/*,.pdf" onchange="handleKycUpload('address', this)">
+              🏠 Click to upload proof of address
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECURITY -->
+      <div class="view-panel" id="panel-security">
+        <div class="page-head"><div><h1>Security</h1><div class="sub">Multi-factor auth, devices, and fraud protection.</div></div></div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">Authentication</div>
+            <div class="list-row"><div><div class="title">Multi-factor authentication</div><div class="meta">Require a one-time code at sign-in</div></div>
+              <label class="toggle"><input type="checkbox" id="sec-mfa" onchange="toggleSecurity('mfa', this.checked)"><span class="slider"></span></label></div>
+            <div class="list-row"><div><div class="title">Biometric login (Face ID / Fingerprint)</div><div class="meta">Simulated for this demo device</div></div>
+              <label class="toggle"><input type="checkbox" id="sec-bio" onchange="toggleSecurity('biometric', this.checked)"><span class="slider"></span></label></div>
+            <div class="list-row"><div><div class="title">PIN reset</div><div class="meta">Set a new 4-digit transaction PIN</div></div>
+              <button class="btn btn-ghost btn-sm" onclick="openModal('resetPin')">Reset PIN</button></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Trusted devices</div>
+            <div id="device-list"></div>
+            <button class="btn btn-ghost btn-sm" style="width:100%; margin-top:8px;" onclick="logOutOtherDevices()">Log out of all other sessions</button>
+          </div>
+        </div>
+        <div class="grid-2" style="margin-top:18px;">
+          <div class="card">
+            <div class="card-title">Report lost or stolen card</div>
+            <form onsubmit="return handleReportCard(event)">
+              <div class="field"><label>Card</label><select id="rp-card" required></select></div>
+              <button class="btn btn-danger" type="submit">Report &amp; Block Card</button>
+            </form>
+          </div>
+          <div class="card">
+            <div class="card-title">Dispute a transaction</div>
+            <form onsubmit="return handleDispute(event)">
+              <div class="field"><label>Transaction</label><select id="ds-tx" required></select></div>
+              <div class="field"><label>Reason</label><textarea id="ds-reason" required rows="3" style="width:100%; background:var(--surface); border:1px solid var(--hairline); color:var(--text); border-radius:8px; padding:10px; font-size:13px;" placeholder="Briefly describe the issue..."></textarea></div>
+              <button class="btn btn-primary" type="submit">Submit Dispute</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUPPORT -->
+      <div class="view-panel" id="panel-support">
+        <div class="page-head"><div><h1>Support</h1><div class="sub">Get help, fast.</div></div></div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">Contact us</div>
+            <div class="list-row"><div><div class="title">Live chat</div><div class="meta">Ask our AI assistant anything, anytime</div></div><button class="btn btn-ghost btn-sm" onclick="switchView('assistant')">Open Chat</button></div>
+            <div class="list-row"><div><div class="title">Phone</div><div class="meta">+1 (800) 555-0134 · 24/7</div></div><span class="badge badge-green">Available</span></div>
+            <div class="list-row"><div><div class="title">Email</div><div class="meta">support@de-baktrust.example</div></div><span class="badge badge-grey">Reply in 24h</span></div>
+            <div class="list-row"><div><div class="title">Branch &amp; ATM locator</div><div class="meta">Find one near you</div></div><button class="btn btn-ghost btn-sm" onclick="switchView('insights')">View Map</button></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Frequently asked questions</div>
+            <div id="faq-accordion"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- INSIGHTS & ADVANCED -->
+      <div class="view-panel" id="panel-insights">
+        <div class="page-head"><div><h1>Insights &amp; More</h1><div class="sub">Credit health, investing, rewards, and everything else.</div></div></div>
+        <div class="sub-tabs" id="insights-tabs">
+          <button class="sub-tab active" data-itab="credit" onclick="switchInsightsTab('credit')">Credit Score</button>
+          <button class="sub-tab" data-itab="crypto" onclick="switchInsightsTab('crypto')">Crypto &amp; Investing</button>
+          <button class="sub-tab" data-itab="fx" onclick="switchInsightsTab('fx')">Currency Exchange</button>
+          <button class="sub-tab" data-itab="split" onclick="switchInsightsTab('split')">Split a Bill</button>
+          <button class="sub-tab" data-itab="intl" onclick="switchInsightsTab('intl')">International Transfer</button>
+          <button class="sub-tab" data-itab="rewards" onclick="switchInsightsTab('rewards')">Rewards &amp; Referral</button>
+          <button class="sub-tab" data-itab="family" onclick="switchInsightsTab('family')">Family &amp; Insurance</button>
+          <button class="sub-tab" data-itab="locator" onclick="switchInsightsTab('locator')">ATM &amp; Branch</button>
+        </div>
+
+        <div class="itab-panel" id="itab-credit">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-title">Your credit score</div>
+              <div class="gauge-wrap" id="credit-gauge"></div>
+              <div style="text-align:center; font-size:12px; color:var(--text-faint); margin-top:6px;">Simulated for this demo · updates monthly</div>
+            </div>
+            <div class="card">
+              <div class="card-title">What's affecting your score</div>
+              <div class="list-row"><div><div class="title">On-time payments</div><div class="meta">No missed payments recorded</div></div><span class="badge badge-green">Good</span></div>
+              <div class="list-row"><div><div class="title">Credit utilization</div><div class="meta">Based on loan balances vs. limits</div></div><span class="badge badge-amber">Fair</span></div>
+              <div class="list-row"><div><div class="title">Account age</div><div class="meta">Since account opening</div></div><span class="badge badge-green">Good</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="itab-panel hidden" id="itab-crypto">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-title">Crypto watchlist <span class="badge badge-grey">Where regulated</span></div>
+              <div id="crypto-list"></div>
+            </div>
+            <div class="card">
+              <div class="card-title">Investment portfolio</div>
+              <div id="portfolio-list"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="itab-panel hidden" id="itab-fx">
+          <div class="card" style="max-width:520px;">
+            <div class="card-title">Live-style exchange rates <span class="badge badge-grey">Base: USD</span></div>
+            <div id="fx-table"></div>
+          </div>
+        </div>
+
+        <div class="itab-panel hidden" id="itab-split">
+          <div class="card" style="max-width:520px;">
+            <div class="card-title">Split a bill</div>
+            <form onsubmit="return handleSplitBill(event)">
+              <div class="field"><label>Pay from</label><select id="sp-account" required></select></div>
+              <div class="field"><label>Total bill amount</label><input type="number" id="sp-total" min="0.01" step="0.01" required placeholder="0.00"></div>
+              <div class="field"><label>Number of people (including you)</label><input type="number" id="sp-people" min="2" value="2" required></div>
+              <div class="field"><label>What's it for?</label><input type="text" id="sp-memo" placeholder="e.g. Dinner at Luigi's"></div>
+              <button class="btn btn-primary" type="submit">Request Split Payments</button>
+            </form>
+          </div>
+        </div>
+
+        <div class="itab-panel hidden" id="itab-intl">
+          <div class="card" style="max-width:560px;">
+            <div class="card-title">Send internationally</div>
+            <form onsubmit="return handleIntlTransfer(event)">
+              <div class="field"><label>From account</label><select id="it-account" required></select></div>
+              <div class="field-row">
+                <div class="field"><label>Recipient name</label><input type="text" id="it-name" required placeholder="e.g. Priya Nair"></div>
+                <div class="field"><label>Destination country</label><input type="text" id="it-country" required placeholder="e.g. India"></div>
+              </div>
+              <div class="field-row">
+                <div class="field"><label>Amount (USD)</label><input type="number" id="it-amount" min="1" step="0.01" required placeholder="0.00" oninput="updateIntlPreview()"></div>
+                <div class="field"><label>Destination currency</label>
+                  <select id="it-currency" onchange="updateIntlPreview()"><option>NGN</option><option>EUR</option><option>GBP</option><option>INR</option><option>KES</option><option>ZAR</option><option>CAD</option></select>
+                </div>
+              </div>
+              <div class="hint" id="it-converted" style="margin-bottom:14px;"></div>
+              <button class="btn btn-primary" type="submit">Send Internationally</button>
+            </form>
+          </div>
+        </div>
+
+        <div class="itab-panel hidden" id="itab-rewards">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-title">Rewards &amp; cashback</div>
+              <div class="stat-tile"><div class="k">Points balance</div><div class="v" id="rewards-points">0 pts</div></div>
+              <div class="sub" style="margin:14px 0 4px;">Earn 1 point per $1 spent. Redeem for statement credit.</div>
+              <button class="btn btn-ghost btn-sm" onclick="redeemRewards()">Redeem 500 pts → $5 credit</button>
+            </div>
+            <div class="card">
+              <div class="card-title">Refer a friend</div>
+              <div class="sub" style="margin-bottom:10px;">Share your code — you both get a bonus when they open an account.</div>
+              <div class="stat-tile mono" id="referral-code" style="text-align:center; font-size:18px; letter-spacing:0.08em;"></div>
+              <button class="btn btn-ghost btn-sm" style="margin-top:10px;" onclick="copyReferralCode()">Copy Code</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="itab-panel hidden" id="itab-family">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-title">Family / joint accounts</div>
+              <div class="sub" style="margin-bottom:14px;">Invite a family member to a shared account with spending visibility.</div>
+              <form onsubmit="return handleInviteFamily(event)">
+                <div class="field"><label>Email to invite</label><input type="email" id="fam-email" required placeholder="family@email.com"></div>
+                <div class="field"><label>Relationship</label>
+                  <select id="fam-rel"><option>Spouse</option><option>Child</option><option>Parent</option><option>Other</option></select>
+                </div>
+                <button class="btn btn-primary" type="submit">Send Invite</button>
+              </form>
+              <div id="family-list" style="margin-top:16px;"></div>
+            </div>
+            <div class="card">
+              <div class="card-title">In-app insurance</div>
+              <div class="list-row"><div><div class="title">Device &amp; purchase protection</div><div class="meta">$2.99/mo</div></div><button class="btn btn-ghost btn-sm" onclick="toggleInsurance('device')" id="ins-device-btn">Add</button></div>
+              <div class="list-row"><div><div class="title">Travel insurance</div><div class="meta">$4.99/mo</div></div><button class="btn btn-ghost btn-sm" onclick="toggleInsurance('travel')" id="ins-travel-btn">Add</button></div>
+              <div class="list-row"><div><div class="title">Life insurance (basic)</div><div class="meta">$9.99/mo</div></div><button class="btn btn-ghost btn-sm" onclick="toggleInsurance('life')" id="ins-life-btn">Add</button></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="itab-panel hidden" id="itab-locator">
+          <div class="card">
+            <div class="card-title">ATM &amp; branch locator</div>
+            <div class="sub" style="margin-bottom:14px;">Simulated nearby locations for this demo.</div>
+            <div id="locator-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI ASSISTANT -->
+      <div class="view-panel" id="panel-assistant">
+        <div class="page-head"><div><h1>AI Assistant</h1><div class="sub">Ask about your balances, spending, or general budgeting.</div></div></div>
+        <div class="ai-wrap">
+          <div class="ai-chat">
+            <div class="ai-messages" id="ai-messages"></div>
+            <div class="ai-input-bar">
+              <input type="text" id="ai-input" placeholder="Ask about your spending, balances, or budgeting..." onkeydown="if(event.key==='Enter'){sendAiMessage();}">
+              <button class="btn btn-primary" onclick="sendAiMessage()">Send</button>
+            </div>
+          </div>
+          <div class="ai-side">
+            <div class="ai-side-title">Try asking</div>
+            <div class="ai-suggest" onclick="askSuggested(this)">How much did I spend on groceries this month?</div>
+            <div class="ai-suggest" onclick="askSuggested(this)">Where can I cut back based on my transactions?</div>
+            <div class="ai-suggest" onclick="askSuggested(this)">Am I on track to save this month?</div>
+            <div class="ai-suggest" onclick="askSuggested(this)">Give me a simple 50/30/20 budget for my income.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="view-panel" id="panel-settings">
+        <div class="page-head"><div><h1>Settings</h1><div class="sub">Profile and account preferences.</div></div></div>
+        <div class="card" style="max-width:520px;">
+          <div class="settings-row">
+            <div><div class="label" id="set-name"></div><div class="desc" id="set-email"></div></div>
+          </div>
+          <div class="settings-row">
+            <div><div class="label">Username</div><div class="desc" id="set-username"></div></div>
+          </div>
+          <div class="settings-row">
+            <div><div class="label">Member since</div><div class="desc" id="set-since"></div></div>
+          </div>
+        </div>
+
+        <div class="card" style="max-width:520px; margin-top:18px;">
+          <div class="card-title">Notification preferences</div>
+          <div class="settings-row"><div><div class="label">Push notifications</div><div class="desc">Alerts on this device</div></div>
+            <label class="toggle"><input type="checkbox" id="np-push" onchange="toggleNotifPref('push', this.checked)"><span class="slider"></span></label></div>
+          <div class="settings-row"><div><div class="label">SMS alerts</div><div class="desc">Text message alerts for transactions</div></div>
+            <label class="toggle"><input type="checkbox" id="np-sms" onchange="toggleNotifPref('sms', this.checked)"><span class="slider"></span></label></div>
+          <div class="settings-row"><div><div class="label">Email alerts</div><div class="desc">Statement and security emails</div></div>
+            <label class="toggle"><input type="checkbox" id="np-email" onchange="toggleNotifPref('email', this.checked)"><span class="slider"></span></label></div>
+        </div>
+
+        <div class="card" style="max-width:520px; margin-top:18px;">
+          <div class="card-title">Appearance &amp; accessibility</div>
+          <div class="settings-row"><div><div class="label">Dark mode</div><div class="desc">De-Bak trust is dark-themed by design</div></div>
+            <label class="toggle"><input type="checkbox" checked disabled><span class="slider"></span></label></div>
+          <div class="settings-row"><div><div class="label">Larger text</div><div class="desc">Increase base font size app-wide</div></div>
+            <label class="toggle"><input type="checkbox" id="np-largetext" onchange="toggleLargeText(this.checked)"><span class="slider"></span></label></div>
+        </div>
+
+        <div class="card" style="max-width:520px; margin-top:18px;">
+          <div class="card-title">Data</div>
+          <div class="settings-row">
+            <div>
+              <div class="label">Reset demo data</div>
+              <div class="desc">Deletes all your accounts, cards, and transactions permanently.</div>
+            </div>
+            <button class="btn btn-danger btn-sm" onclick="confirmReset()">Reset</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div id="modal-root"></div>
+
+<script>
+/* ============================================================
+   DE-BAK TRUST — client-side demo bank
+   Storage: window.storage (personal, per user account)
+   ============================================================ */
+
+/* Fallback storage shim: uses window.storage when running inside the
+   Claude artifact runtime, otherwise falls back to localStorage so the
+   file also works as a standalone HTML page (e.g. opened directly in
+   a browser, where window.storage does not exist). */
+const STORAGE = window.storage || {
+  async get(key, shared){
+    const raw = localStorage.getItem('debak::'+key);
+    if(raw===null) throw new Error('not found');
+    return { key, value: raw, shared: !!shared };
+  },
+  async set(key, value, shared){
+    localStorage.setItem('debak::'+key, value);
+    return { key, value, shared: !!shared };
+  },
+  async delete(key, shared){
+    localStorage.removeItem('debak::'+key);
+    return { key, deleted:true, shared: !!shared };
+  },
+  async list(prefix, shared){
+    const p = 'debak::'+(prefix||'');
+    const keys = Object.keys(localStorage).filter(k=>k.startsWith(p)).map(k=>k.slice(7));
+    return { keys, prefix, shared: !!shared };
+  }
+};
+const CATEGORIES = ['Groceries','Dining','Transport','Utilities','Entertainment','Shopping','Income','Transfer','Deposit','Rent','Gift','Shared Expense','Bills','Airtime','Data','Wallet Funding','Loan','Savings','Investment','Insurance','International','Other'];
+
+let state = {
+  user:null, accounts:[], transactions:[], aiHistory:[], systemPrompt:null,
+  cards:[], beneficiaries:[], scheduled:[], goals:[], deposits:[], loans:[],
+  devices:[], security:{ mfaEnabled:false, biometric:false, pin:null },
+  kyc:{ idUploaded:false, addressUploaded:false, status:'unverified' },
+  notifications:{ push:true, sms:true, email:true },
+  creditScore:712, rewardsPoints:0, referralCode:null,
+  crypto:[], portfolio:[], family:[], insurance:{ device:false, travel:false, life:false }
+};
+const BILLERS = [
+  { key:'electric', label:'Electricity' }, { key:'water', label:'Water' }, { key:'tv', label:'Cable / TV' },
+  { key:'internet', label:'Internet' }, { key:'airtime', label:'Airtime' }, { key:'data', label:'Data Bundle' },
+  { key:'wallet', label:'Mobile Wallet' }, { key:'other', label:'Other Biller' }
+];
+const FX_RATES = { NGN:1550.25, EUR:0.92, GBP:0.79, INR:85.4, KES:129.2, ZAR:18.1, CAD:1.37 };
+const CRYPTO_SEED = [
+  { symbol:'BTC', name:'Bitcoin', amount:0.0142, priceUSD:64200 },
+  { symbol:'ETH', name:'Ethereum', amount:0.31, priceUSD:3120 },
+  { symbol:'USDC', name:'USD Coin', amount:120, priceUSD:1 }
+];
+const PORTFOLIO_SEED = [
+  { name:'Global Index Fund', ticker:'GLBX', units:12.4, priceUSD:88.10 },
+  { name:'Balanced Bond Fund', ticker:'BALB', units:30, priceUSD:21.55 }
+];
+const ATM_LOCATIONS = [
+  { name:'De-Bak trust — Main Branch', dist:'0.4 mi', type:'Branch + ATM' },
+  { name:'De-Bak trust — Uptown Kiosk', dist:'1.1 mi', type:'ATM only' },
+  { name:'De-Bak trust — Riverside', dist:'2.3 mi', type:'Branch + ATM' },
+  { name:'Partner ATM — Merchant Plaza', dist:'0.8 mi', type:'Fee-free ATM' }
+];
+const FAQS = [
+  { q:'How do I freeze my card?', a:'Go to My Cards, select the card, and toggle Freeze. It takes effect immediately and can be undone anytime.' },
+  { q:'How long do transfers between my own accounts take?', a:'Instant in this demo. In production, internal transfers are typically immediate while bank-to-bank transfers can take 1-3 business days.' },
+  { q:'Is my data real or simulated?', a:'This is a self-contained demo application. No real funds are held or moved, and all figures are simulated.' },
+  { q:'How do I report a lost card?', a:'Go to Security → Report lost or stolen card. This immediately blocks the card from further use.' },
+  { q:'Can I change my notification preferences?', a:'Yes — under Settings you can toggle push, SMS, and email alerts independently.' }
+];
+
+const $ = sel => document.querySelector(sel);
+const $$ = sel => Array.from(document.querySelectorAll(sel));
+const fmt = n => (n<0?'-':'') + '$' + Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtDate = d => new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+function uid(p){ return p+'_'+Math.random().toString(36).slice(2,10)+Date.now().toString(36); }
+
+async function sha256(str){
+  if(window.crypto && window.crypto.subtle){
+    try{
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+      return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+    }catch(e){ /* fall through to fallback below */ }
+  }
+  /* Fallback for non-secure contexts (e.g. file:// in some browsers) where
+     crypto.subtle is unavailable. Not cryptographically strong, but this is
+     a demo app with no real funds/security requirements — this only needs
+     to consistently map the same password to the same string. */
+  let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+  for(let i=0;i<str.length;i++){
+    const ch = str.charCodeAt(i);
+    h1 = Math.imul(h1 ^ ch, 2654435761);
+    h2 = Math.imul(h2 ^ ch, 1597334677);
+  }
+  h1 = Math.imul(h1 ^ (h1>>>16), 2246822507) ^ Math.imul(h2 ^ (h2>>>13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2>>>16), 2246822507) ^ Math.imul(h1 ^ (h1>>>13), 3266489909);
+  return (h1>>>0).toString(16).padStart(8,'0') + (h2>>>0).toString(16).padStart(8,'0');
+}
+function genAccountNumber(){ return Array.from({length:10},()=>Math.floor(Math.random()*10)).join(''); }
+function maskNumber(n){ return '•••• ' + n.slice(-4); }
+
+/* ---------------- storage helpers ---------------- */
+async function getUsers(){
+  try{ const r = await STORAGE.get('users', false); return r ? JSON.parse(r.value) : []; }
+  catch(e){ return []; }
+}
+async function saveUsers(u){ await STORAGE.set('users', JSON.stringify(u), false); }
+
+async function getAccounts(userId){
+  try{ const r = await STORAGE.get('accounts:'+userId, false); return r ? JSON.parse(r.value) : []; }
+  catch(e){ return []; }
+}
+async function saveAccounts(userId, a){ await STORAGE.set('accounts:'+userId, JSON.stringify(a), false); }
+
+async function getTransactions(userId){
+  try{ const r = await STORAGE.get('transactions:'+userId, false); return r ? JSON.parse(r.value) : []; }
+  catch(e){ return []; }
+}
+async function saveTransactions(userId, t){ await STORAGE.set('transactions:'+userId, JSON.stringify(t), false); }
+
+/* extended feature data is combined into one key to minimize storage calls */
+async function getExtra(userId){
+  try{
+    const r = await STORAGE.get('extra:'+userId, false);
+    return r ? JSON.parse(r.value) : null;
+  }catch(e){ return null; }
+}
+async function saveExtra(userId){
+  const payload = {
+    cards: state.cards, beneficiaries: state.beneficiaries, scheduled: state.scheduled,
+    goals: state.goals, deposits: state.deposits, loans: state.loans, devices: state.devices,
+    security: state.security, kyc: state.kyc, notifications: state.notifications,
+    creditScore: state.creditScore, rewardsPoints: state.rewardsPoints, referralCode: state.referralCode,
+    crypto: state.crypto, portfolio: state.portfolio, family: state.family, insurance: state.insurance
+  };
+  await STORAGE.set('extra:'+userId, JSON.stringify(payload), false);
+}
+function defaultExtraData(userId){
+  return {
+    cards:[
+      { id: uid('card'), type:'Debit', network:'Visa', last4: genAccountNumber().slice(-4), frozen:false, status:'active', limits:{ atm:1000, pos:5000, online:3000 } }
+    ],
+    beneficiaries:[],
+    scheduled:[],
+    goals:[],
+    deposits:[],
+    loans:[],
+    devices:[
+      { id: uid('dev'), name:'This device — Web Browser', lastActive:new Date().toISOString(), current:true }
+    ],
+    security:{ mfaEnabled:false, biometric:false, pin:null },
+    kyc:{ idUploaded:false, addressUploaded:false, status:'unverified' },
+    notifications:{ push:true, sms:true, email:true },
+    creditScore: 680 + Math.floor(Math.random()*80),
+    rewardsPoints: 0,
+    referralCode: 'DEBAK-' + userId.slice(-6).toUpperCase(),
+    crypto: CRYPTO_SEED.map(c=>({...c})),
+    portfolio: PORTFOLIO_SEED.map(p=>({...p})),
+    family: [],
+    insurance:{ device:false, travel:false, life:false }
+  };
+}
+
+/* ---------------- auth ---------------- */
+function switchAuthTab(tab){
+  $('#tab-signin').classList.toggle('active', tab==='signin');
+  $('#tab-signup').classList.toggle('active', tab==='signup');
+  $('#form-signin').classList.toggle('hidden', tab!=='signin');
+  $('#form-signup').classList.toggle('hidden', tab!=='signup');
+  $('#auth-error').style.display='none';
+}
+function showAuthError(msg){
+  const el = $('#auth-error'); el.textContent = msg; el.style.display='block';
+}
+
+async function handleSignUp(e){
+  e.preventDefault();
+  try{
+    const name = $('#su-name').value.trim();
+    const username = $('#su-username').value.trim().toLowerCase();
+    const email = $('#su-email').value.trim();
+    const password = $('#su-password').value;
+    const deposit = Math.max(0, parseFloat($('#su-deposit').value) || 0);
+
+    const users = await getUsers();
+    if(users.some(u=>u.username===username)){
+      showAuthError('That username is already taken.');
+      return false;
+    }
+    const passwordHash = await sha256(password);
+    const user = { id: uid('usr'), name, username, email, passwordHash, createdAt: new Date().toISOString() };
+    users.push(user);
+    await saveUsers(users);
+
+    const checkingId = uid('acc');
+    const savingsId = uid('acc');
+    const accounts = [
+      { id: checkingId, type:'Checking', number: genAccountNumber(), balance: deposit },
+      { id: savingsId, type:'Savings', number: genAccountNumber(), balance: 0 },
+    ];
+
+    let txs = [];
+    if(deposit>0){
+      txs.push({ id: uid('tx'), accountId: checkingId, date: new Date(Date.now()-13*86400000).toISOString(), description:'Opening Deposit', category:'Deposit', amount: deposit, balanceAfter: deposit });
+    }
+    const seedResult = seedSampleTransactions(checkingId, deposit);
+    txs = txs.concat(seedResult.txs);
+    accounts[0].balance = seedResult.endingBalance;
+
+    await saveAccounts(user.id, accounts);
+    await saveTransactions(user.id, txs);
+
+    const extra = defaultExtraData(user.id);
+    Object.assign(state, extra);
+    await saveExtra(user.id);
+
+    await loginAs(user, accounts, txs);
+  }catch(err){
+    console.error('Sign up failed:', err);
+    showAuthError('Something went wrong creating your account: ' + err.message);
+  }
+  return false;
+}
+
+function seedSampleTransactions(accountId, startingBalance){
+  const items = [
+    { daysAgo:12, desc:'Salary Deposit — Acme Corp', cat:'Income', amount:2400 },
+    { daysAgo:11, desc:'Whole Foods Market', cat:'Groceries', amount:-86.42 },
+    { daysAgo:9,  desc:'Metro Transit Pass', cat:'Transport', amount:-45.00 },
+    { daysAgo:7,  desc:'Blue Bottle Coffee', cat:'Dining', amount:-6.75 },
+    { daysAgo:6,  desc:'Con Edison Utilities', cat:'Utilities', amount:-128.30 },
+    { daysAgo:4,  desc:'Netflix', cat:'Entertainment', amount:-15.49 },
+    { daysAgo:3,  desc:'Trader Joe\'s', cat:'Groceries', amount:-52.10 },
+    { daysAgo:2,  desc:'Shell Gas Station', cat:'Transport', amount:-38.20 },
+    { daysAgo:1,  desc:'Corner Bistro', cat:'Dining', amount:-24.60 },
+  ];
+  let bal = startingBalance;
+  const txs = [];
+  for(const it of items){
+    bal += it.amount;
+    txs.push({ id: uid('tx'), accountId, date: new Date(Date.now()-it.daysAgo*86400000).toISOString(), description: it.desc, category: it.cat, amount: it.amount, balanceAfter: Math.round(bal*100)/100 });
+  }
+  return { txs, endingBalance: Math.round(bal*100)/100 };
+}
+
+async function handleSignIn(e){
+  e.preventDefault();
+  try{
+    const username = $('#si-username').value.trim().toLowerCase();
+    const password = $('#si-password').value;
+    const users = await getUsers();
+    const user = users.find(u=>u.username===username);
+    if(!user){ showAuthError('No account found with that username.'); return false; }
+    const hash = await sha256(password);
+    if(hash !== user.passwordHash){ showAuthError('Incorrect password.'); return false; }
+
+    const accounts = await getAccounts(user.id);
+    const txs = await getTransactions(user.id);
+    let extra = await getExtra(user.id);
+    if(!extra) extra = defaultExtraData(user.id);
+    Object.assign(state, extra);
+    await loginAs(user, accounts, txs);
+  }catch(err){
+    console.error('Sign in failed:', err);
+    showAuthError('Something went wrong signing in: ' + err.message);
+  }
+  return false;
+}
+
+async function loginAs(user, accounts, txs){
+  state.user = user; state.accounts = accounts; state.transactions = txs; state.aiHistory = [];
+  state.systemPrompt = buildStandardBankingPrompt();
+  if(!state.referralCode) Object.assign(state, defaultExtraData(user.id));
+  $('#auth-view').classList.add('hidden');
+  $('#app-view').classList.remove('hidden');
+  $('#sb-name').textContent = user.name;
+  $('#sb-handle').textContent = '@'+user.username;
+  $('#sb-avatar').textContent = user.name.charAt(0).toUpperCase();
+  $('#set-name').textContent = user.name;
+  $('#set-email').textContent = user.email;
+  $('#set-username').textContent = '@'+user.username;
+  $('#set-since').textContent = fmtDate(user.createdAt);
+  renderAll();
+  seedAiGreeting();
+}
+
+function handleSignOut(){
+  state = {
+    user:null, accounts:[], transactions:[], aiHistory:[], systemPrompt:null,
+    cards:[], beneficiaries:[], scheduled:[], goals:[], deposits:[], loans:[],
+    devices:[], security:{ mfaEnabled:false, biometric:false, pin:null },
+    kyc:{ idUploaded:false, addressUploaded:false, status:'unverified' },
+    notifications:{ push:true, sms:true, email:true },
+    creditScore:712, rewardsPoints:0, referralCode:null,
+    crypto:[], portfolio:[], family:[], insurance:{ device:false, travel:false, life:false }
+  };
+  $('#app-view').classList.add('hidden');
+  $('#auth-view').classList.remove('hidden');
+  $('#form-signin').reset(); $('#form-signup').reset();
+}
+
+/* ---------------- nav ---------------- */
+function switchView(view){
+  $$('.nav-item').forEach(n=>n.classList.toggle('active', n.dataset.view===view));
+  $$('.view-panel').forEach(p=>p.classList.toggle('active', p.id==='panel-'+view));
+  document.getElementById('sidebar').classList.remove('open');
+  if(view==='transactions') renderTransactions();
+  if(view==='billpay') renderBillPay();
+  if(view==='beneficiaries') renderBeneficiaries();
+  if(view==='scheduled') renderScheduled();
+  if(view==='qrpay') renderQrPay();
+  if(view==='cards') renderCards();
+  if(view==='goals') renderGoals();
+  if(view==='deposits') renderDeposits();
+  if(view==='loans') renderLoans();
+  if(view==='statements') renderStatementsPanel();
+  if(view==='profile') renderProfileKyc();
+  if(view==='security') renderSecurity();
+  if(view==='support') renderSupport();
+  if(view==='insights') renderInsights();
+  if(view==='settings') renderNotificationSettings();
+}
+
+/* ---------------- render ---------------- */
+function totalBalance(){ return state.accounts.reduce((s,a)=>s+a.balance,0); }
+
+function animateBalance(el, target){
+  const start = 0; const dur = 700; const t0 = performance.now();
+  function tick(t){
+    const p = Math.min(1,(t-t0)/dur);
+    const eased = 1 - Math.pow(1-p,3);
+    const val = start + (target-start)*eased;
+    const parts = Math.abs(val).toFixed(2).split('.');
+    el.innerHTML = (val<0?'-':'') + '$' + Number(parts[0]).toLocaleString('en-US') + '<span class="cents">.'+parts[1]+'</span>';
+    if(p<1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+function sparkPath(values, w=140, h=34){
+  if(values.length<2) values = [0,0];
+  const min = Math.min(...values), max = Math.max(...values);
+  const range = (max-min)||1;
+  const step = w/(values.length-1);
+  const pts = values.map((v,i)=> [i*step, h - ((v-min)/range)*h].join(','));
+  return pts.join(' ');
+}
+
+function renderAll(){
+  renderGreeting();
+  renderDashboard();
+  renderAccountsPanel();
+  populateSelects();
+  renderTransactions();
+}
+
+function renderGreeting(){
+  const h = new Date().getHours();
+  const g = h<12?'Good morning':h<18?'Good afternoon':'Good evening';
+  $('#greeting').textContent = `${g}, ${state.user.name.split(' ')[0]}`;
+  $('#today-date').textContent = new Date().toLocaleDateString('en-US',{weekday:'long', month:'long', day:'numeric', year:'numeric'});
+}
+
+function renderDashboard(){
+  animateBalance($('#total-balance'), totalBalance());
+  $('#meta-accts').textContent = state.accounts.length;
+
+  const cutoff = Date.now() - 30*86400000;
+  const recent30 = state.transactions.filter(t=> new Date(t.date).getTime() >= cutoff);
+  const inflow = recent30.filter(t=>t.amount>0).reduce((s,t)=>s+t.amount,0);
+  const outflow = recent30.filter(t=>t.amount<0).reduce((s,t)=>s+Math.abs(t.amount),0);
+  $('#meta-in').textContent = fmt(inflow);
+  $('#meta-out').textContent = fmt(outflow);
+
+  const dashAccts = $('#dash-accounts'); dashAccts.innerHTML='';
+  state.accounts.forEach(acc=>{
+    const accTxs = state.transactions.filter(t=>t.accountId===acc.id).sort((a,b)=> new Date(a.date)-new Date(b.date));
+    const sparkVals = accTxs.slice(-8).map(t=>t.balanceAfter);
+    const path = sparkPath(sparkVals.length?sparkVals:[acc.balance,acc.balance]);
+    const trendUp = sparkVals.length>1 ? sparkVals[sparkVals.length-1] >= sparkVals[0] : true;
+    const div = document.createElement('div');
+    div.className='acct-card';
+    div.innerHTML = `
+      <div class="foil"></div>
+      <div class="tag">${acc.type}</div>
+      <div class="num">${maskNumber(acc.number)}</div>
+      <div class="bal">${fmt(acc.balance)}</div>
+      <svg class="spark" width="140" height="34" viewBox="0 0 140 34">
+        <polyline points="${path}" fill="none" stroke="${trendUp?'var(--teal)':'var(--rose)'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    `;
+    dashAccts.appendChild(div);
+  });
+
+  const recentBox = $('#dash-recent');
+  const recent = [...state.transactions].sort((a,b)=> new Date(b.date)-new Date(a.date)).slice(0,5);
+  if(!recent.length){
+    recentBox.innerHTML = `<div class="empty-state">No transactions yet.</div>`;
+  } else {
+    recentBox.innerHTML = recent.map(t=>{
+      const acc = state.accounts.find(a=>a.id===t.accountId);
+      return `<div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--hairline-soft);">
+        <div><div class="tx-desc">${escapeHtml(t.description)}</div><div class="tx-cat">${fmtDate(t.date)} · ${acc?acc.type:''}</div></div>
+        <div class="amt ${t.amount>=0?'pos':'neg'}">${t.amount>=0?'+':''}${fmt(t.amount)}</div>
+      </div>`;
+    }).join('');
+  }
+
+  const spendBox = $('#dash-spend');
+  const spendMap = {};
+  recent30.filter(t=>t.amount<0).forEach(t=>{ spendMap[t.category] = (spendMap[t.category]||0) + Math.abs(t.amount); });
+  const entries = Object.entries(spendMap).sort((a,b)=>b[1]-a[1]);
+  if(!entries.length){
+    spendBox.innerHTML = `<div class="empty-state">No spending in the last 30 days.</div>`;
+  } else {
+    const max = entries[0][1];
+    spendBox.innerHTML = entries.map(([cat,amt])=>`
+      <div style="margin-bottom:12px;">
+        <div style="display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:5px;">
+          <span>${cat}</span><span class="mono">${fmt(amt)}</span>
+        </div>
+        <div style="height:6px; border-radius:4px; background:var(--surface-3); overflow:hidden;">
+          <div style="height:100%; width:${(amt/max*100).toFixed(0)}%; background:linear-gradient(90deg,var(--brass-dim),var(--brass-soft));"></div>
+        </div>
+      </div>`).join('');
+  }
+}
+
+function renderAccountsPanel(){
+  const box = $('#accounts-list'); box.innerHTML='';
+  state.accounts.forEach(acc=>{
+    const accTxs = state.transactions.filter(t=>t.accountId===acc.id).sort((a,b)=> new Date(b.date)-new Date(a.date));
+    const card = document.createElement('div');
+    card.className='card'; card.style.marginBottom='18px';
+    card.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+        <div>
+          <div class="tag" style="color:var(--brass-soft); font-size:11px; letter-spacing:0.08em; text-transform:uppercase;">${acc.type}</div>
+          <div class="num mono" style="color:var(--text-faint); font-size:13px; margin-top:2px;">Account ${maskNumber(acc.number)}</div>
+        </div>
+        <div style="text-align:right;">
+          <div class="mono" style="font-size:26px; font-weight:600;">${fmt(acc.balance)}</div>
+          <div style="font-size:11.5px; color:var(--text-faint);">Available balance</div>
+        </div>
+      </div>
+      <table>
+        <thead><tr><th>Date</th><th>Description</th><th>Category</th><th style="text-align:right;">Amount</th><th style="text-align:right;">Balance</th></tr></thead>
+        <tbody>
+          ${accTxs.length ? accTxs.slice(0,8).map(t=>`
+            <tr>
+              <td class="mono" style="color:var(--text-faint);">${fmtDate(t.date)}</td>
+              <td class="tx-desc">${escapeHtml(t.description)}</td>
+              <td><span class="cat-pill">${t.category}</span></td>
+              <td class="amt ${t.amount>=0?'pos':'neg'}">${t.amount>=0?'+':''}${fmt(t.amount)}</td>
+              <td class="bal-col">${fmt(t.balanceAfter)}</td>
+            </tr>`).join('') : `<tr><td colspan="5"><div class="empty-state">No transactions on this account yet.</div></td></tr>`}
+        </tbody>
+      </table>
+    `;
+    box.appendChild(card);
+  });
+}
+
+function populateSelects(){
+  const opts = state.accounts.map(a=>`<option value="${a.id}">${a.type} · ${maskNumber(a.number)} — ${fmt(a.balance)}</option>`).join('');
+  $('#tr-from').innerHTML = opts;
+  $('#tr-to').innerHTML = opts;
+  if(state.accounts.length>1) $('#tr-to').selectedIndex = 1;
+  $('#sd-from').innerHTML = opts;
+
+  const fAcc = $('#f-account');
+  fAcc.innerHTML = '<option value="all">All accounts</option>' + state.accounts.map(a=>`<option value="${a.id}">${a.type} ${maskNumber(a.number)}</option>`).join('');
+  const fCat = $('#f-category');
+  fCat.innerHTML = '<option value="all">All categories</option>' + CATEGORIES.map(c=>`<option value="${c}">${c}</option>`).join('');
+
+  // extended-feature account selects
+  ['bp-account','cl-account','st-account','sp-account','it-account'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.innerHTML = opts;
+  });
+  const rpCard = $('#rp-card');
+  if(rpCard) rpCard.innerHTML = state.cards.filter(c=>c.status!=='blocked').map(c=>`<option value="${c.id}">${c.type} card •••• ${c.last4}</option>`).join('') || '<option value="">No active cards</option>';
+  const dsTx = $('#ds-tx');
+  if(dsTx){
+    const recent = [...state.transactions].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,30);
+    dsTx.innerHTML = recent.map(t=>`<option value="${t.id}">${fmtDate(t.date)} — ${t.description} (${fmt(t.amount)})</option>`).join('') || '<option value="">No transactions</option>';
+  }
+}
+
+function renderTransactions(){
+  const accFilter = $('#f-account').value;
+  const catFilter = $('#f-category').value;
+  const range = $('#f-range').value;
+  const search = $('#f-search').value.trim().toLowerCase();
+
+  let list = [...state.transactions];
+  if(accFilter && accFilter!=='all') list = list.filter(t=>t.accountId===accFilter);
+  if(catFilter && catFilter!=='all') list = list.filter(t=>t.category===catFilter);
+  if(range!=='all'){
+    const cutoff = Date.now() - parseInt(range)*86400000;
+    list = list.filter(t=> new Date(t.date).getTime() >= cutoff);
+  }
+  if(search) list = list.filter(t=> t.description.toLowerCase().includes(search));
+  list.sort((a,b)=> new Date(b.date)-new Date(a.date));
+
+  const body = $('#tx-table-body');
+  $('#tx-empty').classList.toggle('hidden', list.length>0);
+  body.innerHTML = list.map(t=>{
+    const acc = state.accounts.find(a=>a.id===t.accountId);
+    return `<tr>
+      <td class="mono" style="color:var(--text-faint);">${fmtDate(t.date)}</td>
+      <td class="tx-desc">${escapeHtml(t.description)}</td>
+      <td style="color:var(--text-dim); font-size:12.5px;">${acc?acc.type+' '+maskNumber(acc.number):'—'}</td>
+      <td><span class="cat-pill">${t.category}</span></td>
+      <td class="amt ${t.amount>=0?'pos':'neg'}">${t.amount>=0?'+':''}${fmt(t.amount)}</td>
+      <td class="bal-col">${fmt(t.balanceAfter)}</td>
+    </tr>`;
+  }).join('');
+}
+
+function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+/* ---------------- money movement ---------------- */
+async function persist(){
+  await saveAccounts(state.user.id, state.accounts);
+  await saveTransactions(state.user.id, state.transactions);
+}
+async function persistExtra(){
+  await saveExtra(state.user.id);
+}
+async function persistAll(){
+  await persist();
+  await persistExtra();
+}
+
+function recordTx(accountId, description, category, amount){
+  const acc = state.accounts.find(a=>a.id===accountId);
+  acc.balance = Math.round((acc.balance + amount)*100)/100;
+  state.transactions.push({ id: uid('tx'), accountId, date: new Date().toISOString(), description, category, amount, balanceAfter: acc.balance });
+}
+
+async function handleTransfer(e){
+  e.preventDefault();
+  const fromId = $('#tr-from').value, toId = $('#tr-to').value;
+  const amount = parseFloat($('#tr-amount').value);
+  const memo = $('#tr-memo').value.trim();
+  if(fromId===toId){ showToast('Choose two different accounts.'); return false; }
+  const from = state.accounts.find(a=>a.id===fromId);
+  if(amount>from.balance){ showToast('Insufficient funds in source account.'); return false; }
+  const to = state.accounts.find(a=>a.id===toId);
+  recordTx(fromId, memo?`Transfer to ${to.type} — ${memo}`:`Transfer to ${to.type}`, 'Transfer', -amount);
+  recordTx(toId, memo?`Transfer from ${from.type} — ${memo}`:`Transfer from ${from.type}`, 'Transfer', amount);
+  await persist();
+  renderAll();
+  e.target.reset();
+  showToast(`Transferred ${fmt(amount)} to ${to.type}.`);
+  return false;
+}
+
+async function handleSend(e){
+  e.preventDefault();
+  const fromId = $('#sd-from').value;
+  const name = $('#sd-name').value.trim();
+  const amount = parseFloat($('#sd-amount').value);
+  const category = $('#sd-category').value;
+  const memo = $('#sd-memo').value.trim();
+  const from = state.accounts.find(a=>a.id===fromId);
+  if(amount>from.balance){ showToast('Insufficient funds in that account.'); return false; }
+  recordTx(fromId, memo?`Sent to ${name} — ${memo}`:`Sent to ${name}`, category, -amount);
+  await persist();
+  renderAll();
+  e.target.reset();
+  showToast(`Sent ${fmt(amount)} to ${name}.`);
+  return false;
+}
+
+/* ---------------- modals ---------------- */
+function openModal(type, extra){
+  const root = $('#modal-root');
+  if(type==='deposit'){
+    const opts = state.accounts.map(a=>`<option value="${a.id}">${a.type} · ${maskNumber(a.number)}</option>`).join('');
+    root.innerHTML = `
+      <div class="modal-overlay" onclick="if(event.target===this) closeModal()">
+        <div class="modal">
+          <h3>Add money</h3>
+          <div class="sub">Simulate a deposit into one of your accounts.</div>
+          <form onsubmit="return handleDeposit(event)">
+            <div class="field"><label>To account</label><select id="dp-account">${opts}</select></div>
+            <div class="field"><label>Amount</label><input type="number" id="dp-amount" min="0.01" step="0.01" required placeholder="0.00"></div>
+            <div class="field"><label>Source</label>
+              <select id="dp-source"><option>Direct Deposit</option><option>Check Deposit</option><option>External Transfer</option><option>Cash Deposit</option></select>
+            </div>
+            <div class="modal-actions">
+              <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+              <button type="submit" class="btn btn-primary">Add Money</button>
+            </div>
+          </form>
+        </div>
+      </div>`;
+  } else if(type==='send'){
+    closeModal(); switchView('transfer');
+  } else if(type==='addBeneficiary'){
+    root.innerHTML = `
+      <div class="modal-overlay" onclick="if(event.target===this) closeModal()">
+        <div class="modal">
+          <h3>Add beneficiary</h3><div class="sub">Save a recipient for faster transfers.</div>
+          <form onsubmit="return handleAddBeneficiary(event)">
+            <div class="field"><label>Full name</label><input type="text" id="bf-name" required></div>
+            <div class="field-row">
+              <div class="field"><label>Bank</label><input type="text" id="bf-bank" required placeholder="e.g. First Union"></div>
+              <div class="field"><label>Account number</label><input type="text" id="bf-account" required></div>
+            </div>
+            <div class="field"><label>Nickname (optional)</label><input type="text" id="bf-nickname" placeholder="e.g. Roommate"></div>
+            <div class="modal-actions"><button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button><button type="submit" class="btn btn-primary">Save</button></div>
+          </form>
+        </div>
+      </div>`;
+  } else if(type==='addScheduled'){
+    const opts = state.accounts.map(a=>`<option value="${a.id}">${a.type} · ${maskNumber(a.number)}</option>`).join('');
+    root.innerHTML = `
+      <div class="modal-overlay" onclick="if(event.target===this) closeModal()">
+        <div class="modal">
+          <h3>New scheduled transfer</h3><div class="sub">Automate a recurring payment.</div>
+          <form onsubmit="return handleAddScheduled(event)">
+            <div class="field"><label>From account</label><select id="sc-from">${opts}</select></div>
+            <div class="field"><label>Recipient</label><input type="text" id="sc-recipient" required></div>
+            <div class="field-row">
+              <div class="field"><label>Amount</label><input type="number" id="sc-amount" min="0.01" step="0.01" required></div>
+              <div class="field"><label>Frequency</label><select id="sc-frequency"><option>Weekly</option><option>Bi-weekly</option><option selected>Monthly</option></select></div>
+            </div>
+            <div class="modal-actions"><button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button><button type="submit" class="btn btn-primary">Schedule</button></div>
+          </form>
+        </div>
+      </div>`;
+  } else if(type==='newVirtualCard'){
+    root.innerHTML = `
+      <div class="modal-overlay" onclick="if(event.target===this) closeModal()">
+        <div class="modal">
+          <h3>New virtual card</h3><div class="sub">Instantly issued for online spending.</div>
+          <form onsubmit="return handleNewVirtualCard(event)">
+            <div class="field"><label>Network</label><select id="vc-network"><option>Visa</option><option>Mastercard</option></select></div>
+            <div class="modal-actions"><button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button><button type="submit" class="btn btn-primary">Create Card</button></div>
+          </form>
+        </div>
+      </div>`;
+  } else if(type==='editCardLimits'){
+    const c = state.cards.find(x=>x.id===extra);
+    root.innerHTML = `
+      <div class="modal-overlay" onclick="if(event.target===this) closeModal()">
+        <div class="modal">
+          <h3>Edit card limits</h3><div class="sub">${c.type} card •••• ${c.last4}</div>
+          <div class="field"><label>ATM limit</label><input type="number" id="lim-atm" value="${c.limits.atm}"></div>
+          <div class="field"><label>POS limit</label><input type="number" id="lim-pos" value="${c.limits.pos}"></div>
+          <div class="field"><label>Online limit</label><input type="number" id="lim-online" value="${c.limits.online}"></div>
+          <div class="modal-actions"><button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button><button type="button" class="btn btn-primary" onclick="saveCardLimits('${c.id}')">Save Limits</button></div>
+        </div>
+      </div>`;
+  } else if(type==='addGoal'){
+    root.innerHTML = `
+      <div class="modal-overlay" onclick="if(event.target===this) closeModal()">
+        <div class="modal">
+          <h3>New savings goal</h3>
+          <form onsubmit="return handleAddGoal(event)">
+            <div class="field"><label>Goal name</label><input type="text" id="gl-name" required placeholder="e.g. Emergency Fund"></div>
+            <div class="field-row">
+              <div class="field"><label>Target amount</label><input type="number" id="gl-target" min="1" step="0.01" required></div>
+              <div class="field"><label>Target date</label><input type="date" id="gl-date"></div>
+            </div>
+            <div class="modal-actions"><button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button><button type="submit" class="btn btn-primary">Create Goal</button></div>
+          </form>
+        </div>
+      </div>`;
+  } else if(type==='addToGoal'){
+    const g = state.goals.find(x=>x.id===extra);
+    const opts = state.accounts.map(a=>`<option value="${a.id}">${a.type} · ${maskNumber(a.number)}</option>`).join('');
+    root.innerHTML = `
+      <div class="modal-overlay" onclick="if(event.target===this) closeModal()">
+        <div class="modal">
+          <h3>Add funds to "${escapeHtml(g.name)}"</h3>
+          <div class="field"><label>From account</label><select id="gf-account">${opts}</select></div>
+          <div class="field"><label>Amount</label><input type="number" id="gf-amount" min="0.01" step="0.01" required></div>
+          <div class="modal-actions"><button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button><button type="button" class="btn btn-primary" onclick="handleAddToGoal('${g.id}')">Add Funds</button></div>
+        </div>
+      </div>`;
+  } else if(type==='newDeposit'){
+    const opts = state.accounts.map(a=>`<option value="${a.id}">${a.type} · ${maskNumber(a.number)}</option>`).join('');
+    root.innerHTML = `
+      <div class="modal-overlay" onclick="if(event.target===this) closeModal()">
+        <div class="modal">
+          <h3>New fixed deposit</h3><div class="sub">Rates: 3mo 3.2% · 6mo 4.0% · 12mo 5.1% · 24mo 5.8%</div>
+          <form onsubmit="return handleNewDeposit(event)">
+            <div class="field"><label>From account</label><select id="fd-account">${opts}</select></div>
+            <div class="field"><label>Amount</label><input type="number" id="fd-amount" min="1" step="0.01" required></div>
+            <div class="field"><label>Term</label><select id="fd-term"><option value="3">3 months</option><option value="6">6 months</option><option value="12" selected>12 months</option><option value="24">24 months</option></select></div>
+            <div class="modal-actions"><button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button><button type="submit" class="btn btn-primary">Lock In Deposit</button></div>
+          </form>
+        </div>
+      </div>`;
+  } else if(type==='applyLoan'){
+    root.innerHTML = `
+      <div class="modal-overlay" onclick="if(event.target===this) closeModal()">
+        <div class="modal">
+          <h3>Apply for a loan</h3><div class="sub">Instant demo approval.</div>
+          <form onsubmit="return handleApplyLoan(event)">
+            <div class="field"><label>Amount</label><input type="number" id="ln-amount" min="1" step="0.01" required></div>
+            <div class="field"><label>Purpose</label><input type="text" id="ln-purpose" required placeholder="e.g. Home repairs"></div>
+            <div class="field"><label>Term</label><select id="ln-term"><option value="6">6 months</option><option value="12" selected>12 months</option><option value="24">24 months</option><option value="36">36 months</option></select></div>
+            <div class="modal-actions"><button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button><button type="submit" class="btn btn-primary">Apply</button></div>
+          </form>
+        </div>
+      </div>`;
+  } else if(type==='repayLoan'){
+    const l = state.loans.find(x=>x.id===extra);
+    const opts = state.accounts.map(a=>`<option value="${a.id}">${a.type} · ${maskNumber(a.number)}</option>`).join('');
+    root.innerHTML = `
+      <div class="modal-overlay" onclick="if(event.target===this) closeModal()">
+        <div class="modal">
+          <h3>Make a payment</h3><div class="sub">Balance remaining: ${fmt(l.balance)}</div>
+          <div class="field"><label>From account</label><select id="rl-account">${opts}</select></div>
+          <div class="field"><label>Amount</label><input type="number" id="rl-amount" min="0.01" max="${l.balance}" step="0.01" value="${l.monthlyPayment}" required></div>
+          <div class="modal-actions"><button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button><button type="button" class="btn btn-primary" onclick="handleRepayLoan('${l.id}')">Pay</button></div>
+        </div>
+      </div>`;
+  } else if(type==='resetPin'){
+    root.innerHTML = `
+      <div class="modal-overlay" onclick="if(event.target===this) closeModal()">
+        <div class="modal">
+          <h3>Reset transaction PIN</h3>
+          <form onsubmit="return handleResetPin(event)">
+            <div class="field"><label>New 4-digit PIN</label><input type="password" id="pin-new" required minlength="4" maxlength="4" pattern="[0-9]{4}" placeholder="••••"></div>
+            <div class="modal-actions"><button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button><button type="submit" class="btn btn-primary">Save PIN</button></div>
+          </form>
+        </div>
+      </div>`;
+  }
+}
+function closeModal(){ $('#modal-root').innerHTML=''; }
+
+async function handleDeposit(e){
+  e.preventDefault();
+  const accountId = $('#dp-account').value;
+  const amount = parseFloat($('#dp-amount').value);
+  const source = $('#dp-source').value;
+  recordTx(accountId, source, 'Deposit', amount);
+  await persist();
+  renderAll();
+  closeModal();
+  showToast(`Added ${fmt(amount)}.`);
+  return false;
+}
+
+function confirmReset(){
+  const root = $('#modal-root');
+  root.innerHTML = `
+    <div class="modal-overlay" onclick="if(event.target===this) closeModal()">
+      <div class="modal">
+        <h3>Reset all data?</h3>
+        <div class="sub">This permanently deletes your accounts and transaction history. This cannot be undone.</div>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+          <button class="btn btn-danger" onclick="doReset()">Delete Everything</button>
+        </div>
+      </div>
+    </div>`;
+}
+async function doReset(){
+  const uid_ = state.user.id;
+  await STORAGE.delete('accounts:'+uid_, false).catch(()=>{});
+  await STORAGE.delete('transactions:'+uid_, false).catch(()=>{});
+  await STORAGE.delete('extra:'+uid_, false).catch(()=>{});
+  state.accounts = []; state.transactions = [];
+  Object.assign(state, defaultExtraData(uid_));
+  await persistAll();
+  renderAll();
+  closeModal();
+  showToast('All data reset.');
+}
+
+function showToast(msg){
+  const root = document.createElement('div');
+  root.className='toast';
+  root.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg><span>${escapeHtml(msg)}</span>`;
+  document.body.appendChild(root);
+  setTimeout(()=>root.remove(), 3200);
+}
+
+/* ---------------- AI assistant ---------------- */
+function buildStandardBankingPrompt(){
+  return [
+    `You are the virtual assistant for De-Bak trust, a private banking application. Conduct yourself the way a professional bank's assistant is expected to:`,
+    `- Tone: precise, courteous, and concise — like a helpful private banker, not overly casual.`,
+    `- Accuracy: only state figures that are derivable from the account data provided to you below. Never invent balances, transactions, or dates.`,
+    `- Scope: you can explain balances, transaction history, spending patterns, and general budgeting concepts. You cannot execute transfers, payments, or any real money movement — this is a demo application with no real funds, so never imply otherwise.`,
+    `- Account changes: for anything involving disputes, fraud reports, lost/stolen cards, or changes to account ownership, direct the user to contact the bank directly rather than attempting to resolve it yourself.`,
+    `- Security: never ask the user for their password, PIN, full account number, or other credentials in chat, and note that a real bank never would either.`,
+    `- Privacy: when referencing account numbers, use only the masked form already provided to you (e.g. •••• 1234) — never ask for or restate a full account number.`,
+    `- Advice boundaries: budgeting suggestions are fine, but for tax, legal, or investment decisions, recommend the user consult a licensed professional rather than giving definitive advice.`,
+  ].join('\n');
+}
+
+function buildFinancialContext(){
+  const accSummary = state.accounts.map(a=>`${a.type} (${maskNumber(a.number)}): ${fmt(a.balance)}`).join('\n');
+  const recentTx = [...state.transactions].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,25)
+    .map(t=>`${fmtDate(t.date)} | ${t.description} | ${t.category} | ${t.amount>=0?'+':''}${t.amount.toFixed(2)}`).join('\n');
+  return `User: ${state.user.name}\nTotal balance: ${fmt(totalBalance())}\n\nAccounts:\n${accSummary}\n\nRecent transactions (most recent first):\n${recentTx || 'None yet'}`;
+}
+
+function seedAiGreeting(){
+  const box = $('#ai-messages');
+  box.innerHTML = '';
+  appendAiBubble('assistant', `Hi ${state.user.name.split(' ')[0]}, I'm your De-Bak trust assistant. I can see your account balances and recent transactions — ask me anything about your spending, budgeting, or the app itself.`);
+}
+
+function appendAiBubble(role, text){
+  const box = $('#ai-messages');
+  const div = document.createElement('div');
+  div.className = 'msg '+role;
+  div.textContent = text;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+  return div;
+}
+
+function askSuggested(el){
+  $('#ai-input').value = el.textContent;
+  sendAiMessage();
+}
+
+async function sendAiMessage(){
+  const input = $('#ai-input');
+  const text = input.value.trim();
+  if(!text) return;
+  input.value = '';
+  appendAiBubble('user', text);
+  state.aiHistory.push({ role:'user', content: text });
+
+  const box = $('#ai-messages');
+  const typing = document.createElement('div');
+  typing.className = 'msg assistant typing';
+  typing.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+  box.appendChild(typing);
+  box.scrollTop = box.scrollHeight;
+
+  try{
+    const systemPrompt = `${state.systemPrompt || buildStandardBankingPrompt()}\n\n${buildFinancialContext()}`;
+
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: state.aiHistory.slice(-10)
+      })
+    });
+    const data = await response.json();
+    typing.remove();
+    const textBlock = (data.content||[]).find(c=>c.type==='text');
+    const reply = textBlock ? textBlock.text : "I couldn't generate a response just now — please try again.";
+    appendAiBubble('assistant', reply);
+    state.aiHistory.push({ role:'assistant', content: reply });
+  }catch(err){
+    typing.remove();
+    appendAiBubble('assistant', "I'm having trouble connecting right now. Please try again in a moment.");
+  }
+}
+
+/* ================================================================
+   EXTENDED FEATURES
+   ================================================================ */
+
+/* ---------- Bill Pay / Airtime / Data / Wallet Funding ---------- */
+let selectedBiller = 'electric';
+function renderBillPay(){
+  const grid = $('#biller-grid');
+  grid.innerHTML = BILLERS.map(b=>`<div class="biller-tile ${b.key===selectedBiller?'active':''}" onclick="selectBiller('${b.key}')">${b.label}</div>`).join('');
+  $('#bp-category').value = selectedBiller;
+  const recent = state.transactions.filter(t=>['Bills','Airtime','Data','Wallet Funding'].includes(t.category))
+    .sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,8);
+  const box = $('#bp-recent');
+  box.innerHTML = recent.length ? recent.map(t=>`
+    <div class="list-row"><div><div class="title">${escapeHtml(t.description)}</div><div class="meta">${fmtDate(t.date)} · ${t.category}</div></div>
+    <div class="amt neg">${fmt(t.amount)}</div></div>`).join('') : `<div class="empty-state">No bill payments yet.</div>`;
+}
+function selectBiller(key){ selectedBiller = key; renderBillPay(); }
+async function handleBillPay(e){
+  e.preventDefault();
+  const key = selectedBiller;
+  const biller = BILLERS.find(b=>b.key===key);
+  const accountId = $('#bp-account').value;
+  const ref = $('#bp-ref').value.trim();
+  const amount = parseFloat($('#bp-amount').value);
+  const from = state.accounts.find(a=>a.id===accountId);
+  if(amount > from.balance){ showToast('Insufficient funds for this payment.'); return false; }
+  const catMap = { airtime:'Airtime', data:'Data', wallet:'Wallet Funding' };
+  const category = catMap[key] || 'Bills';
+  recordTx(accountId, `${biller.label} — ${ref}`, category, -amount);
+  state.rewardsPoints += Math.floor(amount);
+  await persistAll();
+  renderAll(); renderBillPay();
+  e.target.reset();
+  showToast(`Paid ${fmt(amount)} for ${biller.label}.`);
+  return false;
+}
+
+/* ---------- Beneficiaries ---------- */
+function renderBeneficiaries(){
+  const box = $('#beneficiary-list');
+  if(!state.beneficiaries.length){ box.innerHTML = `<div class="empty-state">No saved beneficiaries yet. Add one to speed up future transfers.</div>`; return; }
+  box.innerHTML = state.beneficiaries.map(b=>`
+    <div class="list-row">
+      <div><div class="title">${escapeHtml(b.name)} ${b.nickname?`<span class="badge badge-grey">${escapeHtml(b.nickname)}</span>`:''}</div>
+      <div class="meta">${escapeHtml(b.bank)} · ${maskNumber(b.accountNumber)}</div></div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-ghost btn-sm" onclick="quickSendToBeneficiary('${b.id}')">Send</button>
+        <button class="btn btn-ghost btn-sm" onclick="removeBeneficiary('${b.id}')">Remove</button>
+      </div>
+    </div>`).join('');
+}
+async function handleAddBeneficiary(e){
+  e.preventDefault();
+  const name = $('#bf-name').value.trim();
+  const bank = $('#bf-bank').value.trim();
+  const accountNumber = $('#bf-account').value.trim();
+  const nickname = $('#bf-nickname').value.trim();
+  state.beneficiaries.push({ id: uid('ben'), name, bank, accountNumber, nickname });
+  await persistExtra();
+  closeModal();
+  renderBeneficiaries();
+  showToast(`${name} added as a beneficiary.`);
+}
+async function removeBeneficiary(id){
+  state.beneficiaries = state.beneficiaries.filter(b=>b.id!==id);
+  await persistExtra();
+  renderBeneficiaries();
+  showToast('Beneficiary removed.');
+}
+function quickSendToBeneficiary(id){
+  const b = state.beneficiaries.find(x=>x.id===id);
+  switchView('transfer');
+  setTimeout(()=>{ $('#sd-name').value = b.name; $('#sd-memo').value = `To ${b.bank} ${maskNumber(b.accountNumber)}`; }, 30);
+}
+
+/* ---------- Scheduled / Recurring Transfers ---------- */
+function renderScheduled(){
+  const box = $('#scheduled-list');
+  if(!state.scheduled.length){ box.innerHTML = `<div class="empty-state">No scheduled transfers. Set one up to automate recurring payments.</div>`; return; }
+  box.innerHTML = state.scheduled.map(s=>{
+    const from = state.accounts.find(a=>a.id===s.fromId);
+    return `<div class="list-row">
+      <div><div class="title">${fmt(s.amount)} to ${escapeHtml(s.recipient)}</div>
+      <div class="meta">${s.frequency} · from ${from?from.type:'—'} · next run ${fmtDate(s.nextDate)}</div></div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span class="badge ${s.active?'badge-green':'badge-grey'}">${s.active?'Active':'Paused'}</span>
+        <button class="btn btn-ghost btn-sm" onclick="toggleScheduled('${s.id}')">${s.active?'Pause':'Resume'}</button>
+        <button class="btn btn-ghost btn-sm" onclick="removeScheduled('${s.id}')">Cancel</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+async function handleAddScheduled(e){
+  e.preventDefault();
+  const fromId = $('#sc-from').value;
+  const recipient = $('#sc-recipient').value.trim();
+  const amount = parseFloat($('#sc-amount').value);
+  const frequency = $('#sc-frequency').value;
+  const days = { Weekly:7, 'Bi-weekly':14, Monthly:30 }[frequency] || 30;
+  state.scheduled.push({ id: uid('sch'), fromId, recipient, amount, frequency, nextDate: new Date(Date.now()+days*86400000).toISOString(), active:true });
+  await persistExtra();
+  closeModal();
+  renderScheduled();
+  showToast(`Scheduled ${frequency.toLowerCase()} transfer to ${recipient}.`);
+}
+async function toggleScheduled(id){
+  const s = state.scheduled.find(x=>x.id===id); s.active = !s.active;
+  await persistExtra(); renderScheduled();
+}
+async function removeScheduled(id){
+  state.scheduled = state.scheduled.filter(x=>x.id!==id);
+  await persistExtra(); renderScheduled();
+  showToast('Schedule cancelled.');
+}
+
+/* ---------- QR & Cardless ---------- */
+function renderQrPay(){
+  const acc = state.accounts[0];
+  const payload = acc ? `debaktrust://pay?acct=${acc.number}&name=${encodeURIComponent(state.user.name)}` : '';
+  $('#qr-receive').innerHTML = buildFakeQrSvg(payload);
+  populateSelects();
+  $('#cl-code-box').innerHTML = '';
+}
+function buildFakeQrSvg(seedStr){
+  // deterministic pseudo-QR pattern purely for visual/demo purposes
+  let seed = 0; for(const c of seedStr) seed = (seed*31 + c.charCodeAt(0)) >>> 0;
+  function rnd(){ seed = (seed*1103515245 + 12345) >>> 0; return (seed/4294967295); }
+  const n = 14; let cells = '';
+  for(let y=0;y<n;y++) for(let x=0;x<n;x++){
+    const isFinder = (x<3&&y<3)||(x>n-4&&y<3)||(x<3&&y>n-4);
+    const on = isFinder ? ((x%3!==1||y%3!==1)) : rnd()>0.55;
+    if(on) cells += `<rect x="${x*10}" y="${y*10}" width="9" height="9" fill="#0A0E14"/>`;
+  }
+  return `<svg viewBox="0 0 ${n*10} ${n*10}" width="150" height="150">${cells}</svg>`;
+}
+async function handleCardlessCode(e){
+  e.preventDefault();
+  const accountId = $('#cl-account').value;
+  const amount = parseFloat($('#cl-amount').value);
+  const from = state.accounts.find(a=>a.id===accountId);
+  if(amount > from.balance){ showToast('Insufficient funds.'); return false; }
+  const code = Math.floor(100000 + Math.random()*900000);
+  recordTx(accountId, 'Cardless ATM Withdrawal (reserved)', 'Transfer', -amount);
+  await persistAll();
+  renderAll();
+  $('#cl-code-box').innerHTML = `<div class="stat-tile mono" style="margin-top:16px; text-align:center; font-size:22px; letter-spacing:0.1em;">${code}</div>
+    <div class="hint" style="text-align:center; margin-top:8px;">Enter this code at any De-Bak trust ATM within 30 minutes. Funds are reserved from your account.</div>`;
+  showToast('Cardless withdrawal code generated.');
+  return false;
+}
+
+/* ---------- Cards ---------- */
+function renderCards(){
+  const box = $('#cards-list');
+  if(!state.cards.length){ box.innerHTML = `<div class="empty-state">No cards yet.</div>`; return; }
+  box.innerHTML = state.cards.map(c=>`
+    <div class="card">
+      <div class="physical-card ${c.frozen?'frozen':''}">
+        <div class="pc-top"><span>${c.type} · ${c.network}</span><span>${c.status==='blocked'?'BLOCKED':(c.frozen?'FROZEN':'ACTIVE')}</span></div>
+        <div class="pc-num">•••• •••• •••• ${c.last4}</div>
+        <div class="pc-bottom"><span class="pc-name">${state.user.name}</span><span>DEMO</span></div>
+      </div>
+      <div style="margin-top:16px;">
+        <div class="list-row"><div><div class="title">Freeze card</div><div class="meta">Instantly blocks new transactions</div></div>
+          <label class="toggle"><input type="checkbox" ${c.frozen?'checked':''} ${c.status==='blocked'?'disabled':''} onchange="toggleFreeze('${c.id}', this.checked)"><span class="slider"></span></label></div>
+        <div class="list-row"><div><div class="title">ATM limit</div><div class="meta">Daily cash withdrawal cap</div></div><div class="mono">${fmt(c.limits.atm)}</div></div>
+        <div class="list-row"><div><div class="title">POS limit</div><div class="meta">Daily in-store spend cap</div></div><div class="mono">${fmt(c.limits.pos)}</div></div>
+        <div class="list-row"><div><div class="title">Online limit</div><div class="meta">Daily online spend cap</div></div><div class="mono">${fmt(c.limits.online)}</div></div>
+        <div style="display:flex; gap:8px; margin-top:12px;">
+          <button class="btn btn-ghost btn-sm" onclick="openModal('editCardLimits','${c.id}')">Edit Limits</button>
+          ${c.status!=='blocked' ? `<button class="btn btn-danger btn-sm" onclick="blockCard('${c.id}')">Block &amp; Replace</button>` : `<span class="badge badge-red">Replacement issued</span>`}
+        </div>
+      </div>
+    </div>`).join('');
+}
+async function toggleFreeze(id, val){
+  const c = state.cards.find(x=>x.id===id); c.frozen = val;
+  await persistExtra(); renderCards();
+  showToast(val ? 'Card frozen.' : 'Card unfrozen.');
+}
+async function blockCard(id){
+  const c = state.cards.find(x=>x.id===id);
+  c.status = 'blocked'; c.frozen = true;
+  const replacement = { id: uid('card'), type:c.type, network:c.network, last4: genAccountNumber().slice(-4), frozen:false, status:'active', limits:{...c.limits} };
+  state.cards.push(replacement);
+  await persistExtra(); renderCards(); populateSelects();
+  showToast('Card blocked. A replacement card has been issued.');
+}
+async function handleNewVirtualCard(e){
+  e.preventDefault();
+  const network = $('#vc-network').value;
+  state.cards.push({ id: uid('card'), type:'Virtual', network, last4: genAccountNumber().slice(-4), frozen:false, status:'active', limits:{ atm:0, pos:2000, online:2000 } });
+  await persistExtra(); closeModal(); renderCards(); populateSelects();
+  showToast('Virtual card created.');
+}
+async function saveCardLimits(id){
+  const c = state.cards.find(x=>x.id===id);
+  c.limits.atm = parseFloat($('#lim-atm').value)||0;
+  c.limits.pos = parseFloat($('#lim-pos').value)||0;
+  c.limits.online = parseFloat($('#lim-online').value)||0;
+  await persistExtra(); closeModal(); renderCards();
+  showToast('Card limits updated.');
+}
+
+/* ---------- Savings Goals ---------- */
+function renderGoals(){
+  const box = $('#goals-list');
+  if(!state.goals.length){ box.innerHTML = `<div class="empty-state">No savings goals yet. Set one to start automating your savings.</div>`; return; }
+  box.innerHTML = state.goals.map(g=>{
+    const pct = Math.min(100, Math.round((g.saved/g.target)*100));
+    return `<div class="card">
+      <div class="card-title">${escapeHtml(g.name)} <span class="mono" style="font-weight:600;">${pct}%</span></div>
+      <div class="progress-track"><div class="progress-fill" style="width:${pct}%;"></div></div>
+      <div style="display:flex; justify-content:space-between; margin-top:10px; font-size:12.5px; color:var(--text-dim);">
+        <span>${fmt(g.saved)} saved</span><span>Target ${fmt(g.target)} by ${fmtDate(g.targetDate)}</span>
+      </div>
+      <div style="display:flex; gap:8px; margin-top:14px;">
+        <button class="btn btn-ghost btn-sm" onclick="openModal('addToGoal','${g.id}')">Add Funds</button>
+        <button class="btn btn-ghost btn-sm" onclick="removeGoal('${g.id}')">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+async function handleAddGoal(e){
+  e.preventDefault();
+  const name = $('#gl-name').value.trim();
+  const target = parseFloat($('#gl-target').value);
+  const targetDate = $('#gl-date').value || new Date(Date.now()+180*86400000).toISOString();
+  state.goals.push({ id: uid('goal'), name, target, saved:0, targetDate: new Date(targetDate).toISOString() });
+  await persistExtra(); closeModal(); renderGoals();
+  showToast(`Goal "${name}" created.`);
+}
+async function handleAddToGoal(id){
+  const amount = parseFloat($('#gf-amount').value);
+  const accountId = $('#gf-account').value;
+  if(!amount || amount<=0) return;
+  const from = state.accounts.find(a=>a.id===accountId);
+  if(amount>from.balance){ showToast('Insufficient funds.'); return; }
+  const g = state.goals.find(x=>x.id===id);
+  recordTx(accountId, `Savings Goal — ${g.name}`, 'Savings', -amount);
+  g.saved += amount;
+  await persistAll(); closeModal(); renderAll(); renderGoals();
+  showToast(`Added ${fmt(amount)} to "${g.name}".`);
+}
+async function removeGoal(id){
+  state.goals = state.goals.filter(g=>g.id!==id);
+  await persistExtra(); renderGoals();
+}
+
+/* ---------- Fixed Deposits ---------- */
+const FD_RATES = { 3:3.2, 6:4.0, 12:5.1, 24:5.8 };
+function renderDeposits(){
+  const box = $('#deposits-list');
+  if(!state.deposits.length){ box.innerHTML = `<div class="empty-state">No fixed deposits yet.</div>`; return; }
+  box.innerHTML = state.deposits.map(d=>`
+    <div class="list-row">
+      <div><div class="title">${fmt(d.principal)} at ${d.rate}% APY</div>
+      <div class="meta">${d.termMonths}-month term · matures ${fmtDate(d.maturityDate)}</div></div>
+      <span class="badge ${d.status==='matured'?'badge-green':'badge-amber'}">${d.status}</span>
+    </div>`).join('');
+}
+async function handleNewDeposit(e){
+  e.preventDefault();
+  const accountId = $('#fd-account').value;
+  const principal = parseFloat($('#fd-amount').value);
+  const termMonths = parseInt($('#fd-term').value);
+  const from = state.accounts.find(a=>a.id===accountId);
+  if(principal>from.balance){ showToast('Insufficient funds.'); return false; }
+  const rate = FD_RATES[termMonths] || 4;
+  recordTx(accountId, `Fixed Deposit (${termMonths}mo)`, 'Investment', -principal);
+  state.deposits.push({ id: uid('fd'), principal, rate, termMonths, maturityDate: new Date(Date.now()+termMonths*30*86400000).toISOString(), status:'active' });
+  await persistAll(); closeModal(); renderAll(); renderDeposits();
+  showToast(`Locked in ${fmt(principal)} at ${rate}% for ${termMonths} months.`);
+  return false;
+}
+
+/* ---------- Loans ---------- */
+function renderLoans(){
+  const box = $('#loans-list');
+  if(!state.loans.length){ box.innerHTML = `<div class="empty-state">No loans yet. Apply to see it listed here.</div>`; return; }
+  box.innerHTML = state.loans.map(l=>`
+    <div class="list-row">
+      <div><div class="title">${fmt(l.amount)} — ${escapeHtml(l.purpose)}</div>
+      <div class="meta">${l.termMonths}mo @ ${l.rate}% · balance ${fmt(l.balance)} · next due ${l.status==='active'?fmtDate(l.nextDueDate):'—'}</div></div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span class="badge ${l.status==='active'?'badge-amber':l.status==='paid'?'badge-green':'badge-grey'}">${l.status}</span>
+        ${l.status==='active' ? `<button class="btn btn-ghost btn-sm" onclick="openModal('repayLoan','${l.id}')">Make Payment</button>` : ''}
+      </div>
+    </div>`).join('');
+}
+async function handleApplyLoan(e){
+  e.preventDefault();
+  const amount = parseFloat($('#ln-amount').value);
+  const purpose = $('#ln-purpose').value.trim();
+  const termMonths = parseInt($('#ln-term').value);
+  const rate = 8 + Math.round(Math.random()*6);
+  const monthlyPayment = Math.round((amount * (1+rate/100) / termMonths) * 100)/100;
+  const loan = { id: uid('loan'), amount, purpose, termMonths, rate, balance: Math.round(amount*(1+rate/100)*100)/100, monthlyPayment, status:'active', nextDueDate: new Date(Date.now()+30*86400000).toISOString() };
+  state.loans.push(loan);
+  const checking = state.accounts.find(a=>a.type==='Checking') || state.accounts[0];
+  if(checking) recordTx(checking.id, `Loan Disbursement — ${purpose}`, 'Loan', amount);
+  await persistAll(); closeModal(); renderAll(); renderLoans();
+  showToast(`Loan approved: ${fmt(amount)} disbursed to your ${checking?checking.type:'account'}.`);
+  return false;
+}
+async function handleRepayLoan(id){
+  const amount = parseFloat($('#rl-amount').value);
+  const accountId = $('#rl-account').value;
+  if(!amount || amount<=0) return;
+  const from = state.accounts.find(a=>a.id===accountId);
+  if(amount>from.balance){ showToast('Insufficient funds.'); return; }
+  const l = state.loans.find(x=>x.id===id);
+  recordTx(accountId, `Loan Repayment — ${l.purpose}`, 'Loan', -amount);
+  l.balance = Math.max(0, Math.round((l.balance-amount)*100)/100);
+  if(l.balance<=0){ l.status = 'paid'; } else { l.nextDueDate = new Date(Date.now()+30*86400000).toISOString(); }
+  await persistAll(); closeModal(); renderAll(); renderLoans();
+  showToast(l.status==='paid' ? 'Loan fully repaid.' : `Payment of ${fmt(amount)} applied.`);
+}
+
+/* ---------- Statements & account sharing ---------- */
+function renderStatementsPanel(){
+  populateSelects();
+  const box = $('#account-details-share');
+  box.innerHTML = state.accounts.map(a=>`
+    <div class="list-row">
+      <div><div class="title">${a.type}</div><div class="meta">Account ${maskNumber(a.number)}</div></div>
+      <button class="btn btn-ghost btn-sm" onclick="copyAccountDetails('${a.id}')">Copy Details</button>
+    </div>`).join('');
+}
+function copyAccountDetails(id){
+  const a = state.accounts.find(x=>x.id===id);
+  const text = `De-Bak trust — ${a.type}\nAccount holder: ${state.user.name}\nAccount number: ${a.number}\nRouting (demo): 021000021`;
+  if(navigator.clipboard) navigator.clipboard.writeText(text).catch(()=>{});
+  showToast('Account details copied.');
+}
+function handleGenerateStatement(e){
+  e.preventDefault();
+  const accountId = $('#st-account').value;
+  const period = $('#st-period').value;
+  const acc = state.accounts.find(a=>a.id===accountId);
+  let list = state.transactions.filter(t=>t.accountId===accountId);
+  if(period!=='all'){
+    const cutoff = Date.now() - parseInt(period)*86400000;
+    list = list.filter(t=>new Date(t.date).getTime()>=cutoff);
+  }
+  list.sort((a,b)=>new Date(a.date)-new Date(b.date));
+  let text = `DE-BAK TRUST — ACCOUNT STATEMENT (DEMO)\n`;
+  text += `Account holder: ${state.user.name}\nAccount: ${acc.type} ${maskNumber(acc.number)}\nGenerated: ${new Date().toLocaleString()}\n`;
+  text += `${'='.repeat(60)}\n`;
+  text += `DATE         DESCRIPTION                          AMOUNT       BALANCE\n`;
+  list.forEach(t=>{
+    text += `${fmtDate(t.date).padEnd(13)}${t.description.slice(0,36).padEnd(38)}${(t.amount>=0?'+':'')+t.amount.toFixed(2)+'  '.padStart(2).padEnd(0)}`.padEnd(0) + `   ${t.balanceAfter.toFixed(2)}\n`;
+  });
+  text += `${'='.repeat(60)}\nClosing balance: ${fmt(acc.balance)}\n`;
+  text += `This is a demo statement generated client-side. No real funds are represented.\n`;
+  const blob = new Blob([text], { type:'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url; link.download = `debaktrust-statement-${acc.type.toLowerCase()}-${Date.now()}.txt`;
+  document.body.appendChild(link); link.click(); link.remove();
+  URL.revokeObjectURL(url);
+  showToast('Statement downloaded.');
+  return false;
+}
+
+/* ---------- Profile & KYC ---------- */
+function renderProfileKyc(){
+  const box = $('#kyc-steps');
+  const steps = [
+    { label:'Account created', done:true },
+    { label:'Government ID uploaded', done:state.kyc.idUploaded },
+    { label:'Proof of address uploaded', done:state.kyc.addressUploaded },
+    { label:'Verification complete', done:state.kyc.status==='verified' }
+  ];
+  box.innerHTML = steps.map(s=>`<div class="kyc-step"><div class="kyc-dot ${s.done?'done':'pending'}">${s.done?'✓':'…'}</div><div>${s.label}</div></div>`).join('')
+    + `<div style="margin-top:14px;"><span class="badge ${state.kyc.status==='verified'?'badge-green':state.kyc.status==='pending'?'badge-amber':'badge-grey'}">${state.kyc.status}</span></div>`;
+}
+async function handleKycUpload(kind, input){
+  if(!input.files || !input.files[0]) return;
+  if(kind==='id') state.kyc.idUploaded = true;
+  if(kind==='address') state.kyc.addressUploaded = true;
+  state.kyc.status = (state.kyc.idUploaded && state.kyc.addressUploaded) ? 'pending' : 'unverified';
+  await persistExtra();
+  renderProfileKyc();
+  showToast(`${kind==='id'?'ID':'Proof of address'} uploaded — under review.`);
+  if(state.kyc.status==='pending'){
+    setTimeout(async ()=>{
+      state.kyc.status = 'verified';
+      await persistExtra();
+      renderProfileKyc();
+      showToast('Identity verification complete.');
+    }, 2500);
+  }
+}
+
+/* ---------- Security ---------- */
+function renderSecurity(){
+  $('#sec-mfa').checked = state.security.mfaEnabled;
+  $('#sec-bio').checked = state.security.biometric;
+  const box = $('#device-list');
+  box.innerHTML = state.devices.map(d=>`
+    <div class="list-row"><div><div class="title">${escapeHtml(d.name)} ${d.current?'<span class=\"badge badge-green\">This device</span>':''}</div>
+    <div class="meta">Last active ${fmtDate(d.lastActive)}</div></div>
+    ${!d.current ? `<button class="btn btn-ghost btn-sm" onclick="removeDevice('${d.id}')">Sign Out</button>` : ''}</div>`).join('');
+  populateSelects();
+}
+async function toggleSecurity(key, val){
+  state.security[key] = val;
+  await persistExtra();
+  showToast(`${key==='mfa'?'Multi-factor authentication':'Biometric login'} ${val?'enabled':'disabled'}.`);
+}
+async function removeDevice(id){
+  state.devices = state.devices.filter(d=>d.id!==id);
+  await persistExtra(); renderSecurity();
+  showToast('Device signed out.');
+}
+async function logOutOtherDevices(){
+  state.devices = state.devices.filter(d=>d.current);
+  await persistExtra(); renderSecurity();
+  showToast('Signed out of all other sessions.');
+}
+async function handleResetPin(e){
+  e.preventDefault();
+  const pin = $('#pin-new').value;
+  state.security.pin = pin;
+  await persistExtra(); closeModal();
+  showToast('Transaction PIN updated.');
+  return false;
+}
+async function handleReportCard(e){
+  e.preventDefault();
+  const id = $('#rp-card').value;
+  if(!id){ showToast('No card selected.'); return false; }
+  await blockCard(id);
+  showToast('Card reported and blocked. A replacement is on the way.');
+  return false;
+}
+async function handleDispute(e){
+  e.preventDefault();
+  const txId = $('#ds-tx').value;
+  const reason = $('#ds-reason').value.trim();
+  e.target.reset();
+  showToast('Dispute submitted. We\'ll follow up within 5 business days.');
+  return false;
+}
+
+/* ---------- Support ---------- */
+function renderSupport(){
+  const box = $('#faq-accordion');
+  box.innerHTML = FAQS.map((f,i)=>`
+    <div class="accordion-item" id="faq-${i}">
+      <button class="accordion-head" onclick="toggleFaq(${i})"><span>${escapeHtml(f.q)}</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
+      <div class="accordion-body">${escapeHtml(f.a)}</div>
+    </div>`).join('');
+}
+function toggleFaq(i){ $('#faq-'+i).classList.toggle('open'); }
+
+/* ---------- Insights & Advanced ---------- */
+function switchInsightsTab(tab){
+  $$('#insights-tabs .sub-tab').forEach(b=>b.classList.toggle('active', b.dataset.itab===tab));
+  $$('.itab-panel').forEach(p=>p.classList.toggle('hidden', p.id!=='itab-'+tab));
+  if(tab==='intl') populateSelects();
+  if(tab==='split') populateSelects();
+}
+function renderInsights(){
+  renderCreditGauge();
+  renderCrypto();
+  renderFx();
+  renderRewards();
+  renderFamily();
+  renderLocator();
+  populateSelects();
+}
+function renderCreditGauge(){
+  const score = state.creditScore;
+  const pct = Math.min(1, Math.max(0,(score-300)/(850-300)));
+  const angle = pct*180;
+  const color = score>=740?'var(--teal)':score>=670?'var(--brass-soft)':'var(--rose)';
+  $('#credit-gauge').innerHTML = `
+    <svg width="200" height="110" viewBox="0 0 200 110">
+      <path d="M10 100 A90 90 0 0 1 190 100" fill="none" stroke="var(--surface-3)" stroke-width="14" stroke-linecap="round"/>
+      <path d="M10 100 A90 90 0 0 1 190 100" fill="none" stroke="${color}" stroke-width="14" stroke-linecap="round"
+        stroke-dasharray="${pct*283} 283"/>
+    </svg>
+    <div class="gauge-score">${score}</div>
+    <div class="gauge-label">${score>=740?'Very Good':score>=670?'Good':'Fair'} · range 300–850</div>`;
+}
+function renderCrypto(){
+  const list = $('#crypto-list');
+  list.innerHTML = state.crypto.map(c=>`
+    <div class="list-row"><div><div class="title">${c.name} (${c.symbol})</div><div class="meta">${c.amount} ${c.symbol} @ ${fmt(c.priceUSD)}</div></div>
+    <div class="mono">${fmt(c.amount*c.priceUSD)}</div></div>`).join('');
+  const port = $('#portfolio-list');
+  port.innerHTML = state.portfolio.map(p=>`
+    <div class="list-row"><div><div class="title">${p.name}</div><div class="meta">${p.units} units · ${p.ticker}</div></div>
+    <div class="mono">${fmt(p.units*p.priceUSD)}</div></div>`).join('');
+}
+function renderFx(){
+  const box = $('#fx-table');
+  box.innerHTML = Object.entries(FX_RATES).map(([cur,rate])=>`
+    <div class="fx-row"><span>1 USD =</span><span class="mono">${rate.toLocaleString()} ${cur}</span></div>`).join('');
+}
+function renderRewards(){
+  $('#rewards-points').textContent = `${state.rewardsPoints.toLocaleString()} pts`;
+  $('#referral-code').textContent = state.referralCode || '—';
+}
+async function redeemRewards(){
+  if(state.rewardsPoints < 500){ showToast('You need at least 500 points to redeem.'); return; }
+  state.rewardsPoints -= 500;
+  const checking = state.accounts.find(a=>a.type==='Checking') || state.accounts[0];
+  recordTx(checking.id, 'Rewards Redemption — Statement Credit', 'Deposit', 5);
+  await persistAll(); renderAll(); renderRewards();
+  showToast('Redeemed 500 points for a $5.00 credit.');
+}
+function copyReferralCode(){
+  if(navigator.clipboard) navigator.clipboard.writeText(state.referralCode).catch(()=>{});
+  showToast('Referral code copied.');
+}
+function renderFamily(){
+  const box = $('#family-list');
+  if(!state.family.length){ box.innerHTML = ''; return; }
+  box.innerHTML = state.family.map(f=>`
+    <div class="list-row"><div><div class="title">${escapeHtml(f.email)}</div><div class="meta">${f.relationship} · invited ${fmtDate(f.invitedAt)}</div></div>
+    <span class="badge badge-amber">Pending</span></div>`).join('');
+  ['device','travel','life'].forEach(k=>{
+    const btn = document.getElementById('ins-'+k+'-btn');
+    if(btn) btn.textContent = state.insurance[k] ? 'Remove' : 'Add';
+  });
+}
+async function handleInviteFamily(e){
+  e.preventDefault();
+  const email = $('#fam-email').value.trim();
+  const relationship = $('#fam-rel').value;
+  state.family.push({ id: uid('fam'), email, relationship, invitedAt: new Date().toISOString() });
+  await persistExtra(); e.target.reset(); renderFamily();
+  showToast(`Invitation sent to ${email}.`);
+  return false;
+}
+async function toggleInsurance(key){
+  state.insurance[key] = !state.insurance[key];
+  await persistExtra(); renderFamily();
+  showToast(`${key[0].toUpperCase()+key.slice(1)} insurance ${state.insurance[key]?'added':'removed'}.`);
+}
+function renderLocator(){
+  const box = $('#locator-list');
+  box.innerHTML = ATM_LOCATIONS.map(l=>`
+    <div class="list-row"><div><div class="title">${l.name}</div><div class="meta">${l.type}</div></div><span class="badge badge-grey">${l.dist}</span></div>`).join('');
+}
+async function handleSplitBill(e){
+  e.preventDefault();
+  const accountId = $('#sp-account').value;
+  const total = parseFloat($('#sp-total').value);
+  const people = parseInt($('#sp-people').value);
+  const memo = $('#sp-memo').value.trim();
+  const share = Math.round((total/people)*100)/100;
+  const myShare = total - share*(people-1);
+  const from = state.accounts.find(a=>a.id===accountId);
+  if(myShare > from.balance){ showToast('Insufficient funds for your share.'); return false; }
+  recordTx(accountId, memo?`Your share — ${memo}`:'Split bill — your share', 'Shared Expense', -myShare);
+  await persistAll(); renderAll();
+  e.target.reset();
+  showToast(`Your share: ${fmt(myShare)}. Requests for ${fmt(share)} sent to ${people-1} other${people-1===1?'':'s'}.`);
+  return false;
+}
+function updateIntlPreview(){
+  const amount = parseFloat($('#it-amount').value)||0;
+  const currency = $('#it-currency').value;
+  const rate = FX_RATES[currency]||1;
+  $('#it-converted').textContent = amount ? `Recipient gets ≈ ${(amount*rate).toLocaleString(undefined,{maximumFractionDigits:2})} ${currency} (fee: ${fmt(amount*0.02)})` : '';
+}
+async function handleIntlTransfer(e){
+  e.preventDefault();
+  const accountId = $('#it-account').value;
+  const name = $('#it-name').value.trim();
+  const country = $('#it-country').value.trim();
+  const amount = parseFloat($('#it-amount').value);
+  const currency = $('#it-currency').value;
+  const fee = Math.round(amount*0.02*100)/100;
+  const total = amount+fee;
+  const from = state.accounts.find(a=>a.id===accountId);
+  if(total>from.balance){ showToast('Insufficient funds (including 2% transfer fee).'); return false; }
+  recordTx(accountId, `International Transfer to ${name} (${country})`, 'International', -total);
+  await persistAll(); renderAll();
+  e.target.reset(); $('#it-converted').textContent='';
+  showToast(`Sent ${fmt(amount)} to ${name} in ${country} (${fmt(fee)} fee applied).`);
+  return false;
+}
+
+/* ---------- Settings: notifications & accessibility ---------- */
+function renderNotificationSettings(){
+  $('#np-push').checked = state.notifications.push;
+  $('#np-sms').checked = state.notifications.sms;
+  $('#np-email').checked = state.notifications.email;
+  $('#np-largetext').checked = document.documentElement.classList.contains('large-text');
+}
+async function toggleNotifPref(key, val){
+  state.notifications[key] = val;
+  await persistExtra();
+  showToast(`${key.toUpperCase()} alerts ${val?'enabled':'disabled'}.`);
+}
+function toggleLargeText(val){
+  document.documentElement.style.fontSize = val ? '18px' : '';
+}
+
+/* ---------------- ledger tape (auth hero signature) ---------------- */
+function buildLedgerTape(){
+  const lines = [
+    ['Payroll — Northwind LLC','+2,140.00',true],
+    ['Groceries — Market St','-64.18',false],
+    ['Transit Pass','-45.00',false],
+    ['Interest — Savings','+3.42',true],
+    ['Coffee Roasters','-6.50',false],
+    ['Utilities','-118.90',false],
+    ['Transfer to Savings','-300.00',false],
+    ['Freelance Invoice #204','+560.00',true],
+    ['Streaming Service','-15.49',false],
+    ['Pharmacy','-22.75',false],
+  ];
+  const doubled = lines.concat(lines);
+  const tape = $('#ledger-tape');
+  tape.innerHTML = doubled.map(([d,a,pos])=>`<div class="ledger-line"><span>${d}</span><span class="${pos?'amt-pos':'amt-neg'}">${a}</span></div>`).join('');
+}
+
+/* ---------------- money rain backdrop ---------------- */
+function initMoneyRain(){
+  const layer = $('#money-rain');
+  if(!layer) return;
+  const glyphs = ['💵','💰','💸','💴'];
+  const count = 28;
+  for(let i=0;i<count;i++){
+    const el = document.createElement('div');
+    el.className = 'money-bill';
+    el.textContent = glyphs[Math.floor(Math.random()*glyphs.length)];
+    const size = 16 + Math.random()*20;
+    const duration = 7 + Math.random()*9;
+    const delay = -(Math.random()*duration);
+    const drift = Math.round(Math.random()*160-80) + 'px';
+    const spin = Math.round((Math.random()<0.5?-1:1)*(180+Math.random()*360)) + 'deg';
+    el.style.left = (Math.random()*100) + '%';
+    el.style.fontSize = size + 'px';
+    el.style.animationDuration = duration + 's';
+    el.style.animationDelay = delay + 's';
+    el.style.setProperty('--drift', drift);
+    el.style.setProperty('--spin', spin);
+    layer.appendChild(el);
+  }
+}
+
+/* ---------------- init ---------------- */
+buildLedgerTape();
+switchAuthTab('signin');
+initMoneyRain();
+</script>
+</body>
+</html>
